@@ -2,6 +2,20 @@
 
 Prueba Técnica: Desarrollador Node.js con TypeScript, Fastify, Prisma y Monorepo
 
+## Deployment en Vivo
+
+La aplicación está desplegada y disponible en:
+
+- **API**: http://fastify-api-alb-2001389992.eu-north-1.elb.amazonaws.com/
+- **Documentación Swagger**: http://fastify-api-alb-2001389992.eu-north-1.elb.amazonaws.com/docs
+
+### Credenciales de Prueba
+
+Para probar la API puedes usar las siguientes credenciales:
+
+- **Email**: usuario@prueba.com
+- **Contraseña**: unodostres
+
 ## Arquitectura
 
 Este es un monorepo que contiene múltiples paquetes que trabajan juntos para crear una solución API completa:
@@ -198,31 +212,42 @@ Servidor principal de la API Fastify:
 ## Endpoints de la API
 
 ### Autenticación
-- `POST /api/auth/register` - Registro de usuario
-- `POST /api/auth/login` - Inicio de sesión de usuario
-- `GET /api/auth/me` - Obtener usuario actual
-- `POST /api/auth/refresh` - Actualizar token
+- `POST /auth/register` - Registro de usuario
+- `POST /auth/login` - Inicio de sesión de usuario
+- `GET /auth/me` - Obtener usuario actual
+- `POST /auth/refresh` - Actualizar token
 
 ### Usuarios
-- `GET /api/users` - Listar usuarios
-- `GET /api/users/:id` - Obtener usuario por ID
-- `PUT /api/users/:id` - Actualizar usuario
-- `DELETE /api/users/:id` - Eliminar usuario
+- `GET /users` - Listar usuarios
+- `GET /users/:id` - Obtener usuario por ID
+- `PUT /users/:id` - Actualizar usuario
+- `DELETE /users/:id` - Eliminar usuario
 
 ### Posts
-- `GET /api/posts` - Listar posts
-- `POST /api/posts` - Crear post
-- `GET /api/posts/:id` - Obtener post por ID
-- `PUT /api/posts/:id` - Actualizar post
-- `DELETE /api/posts/:id` - Eliminar post
+- `GET /posts` - Listar posts
+- `POST /posts` - Crear post
+- `GET /posts/:id` - Obtener post por ID
+- `PUT /posts/:id` - Actualizar post
+- `DELETE /posts/:id` - Eliminar post
 
 ### Carga de Archivos
-- `POST /api/upload` - Subir archivo
+- `POST /upload` - Subir archivo
 
 ### Notificaciones (WebSocket)
-- `GET /api/notifications/ws` - Conexión WebSocket
-- `POST /api/notifications/send/:userId` - Enviar notificación
-- `POST /api/notifications/broadcast` - Difundir notificación
+- `GET /notifications/ws` - Conexión WebSocket
+- `POST /notifications/send/:userId` - Enviar notificación
+- `POST /notifications/broadcast` - Difundir notificación
+
+### Pruebas de WebSocket
+
+Para probar la funcionalidad de WebSocket, puedes usar el archivo `test-ws.html` incluido en el repositorio. Este archivo proporciona una interfaz simple para:
+
+- Conectar/desconectar del WebSocket
+- Enviar notificaciones a usuarios específicos
+- Enviar notificaciones broadcast
+- Ver mensajes recibidos en tiempo real
+
+Simplemente abre el archivo `test-ws.html` en tu navegador mientras el servidor esté ejecutándose.
 
 ## Despliegue
 
