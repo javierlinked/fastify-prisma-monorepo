@@ -1,0 +1,92 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "extends": ["./node_modules/@kibertoad/biome-config/configs/biome-package.json"],
+  "files": {
+    "includes": ["packages/*/src/**/*.ts", "packages/*/src/**/*.js", "*.ts", "*.js"],
+    "ignoreUnknown": false
+  },
+  "formatter": {
+    "enabled": true,
+    "formatWithErrors": false,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 80,
+    "lineEnding": "lf"
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true
+    }
+  },
+  "javascript": {
+    "globals": [
+      "jest",
+      "describe",
+      "it",
+      "expect",
+      "beforeEach",
+      "afterEach",
+      "beforeAll",
+      "afterAll",
+      "test"
+    ],
+    "formatter": {
+      "quoteStyle": "single",
+      "trailingCommas": "es5",
+      "semicolons": "always",
+      "arrowParentheses": "asNeeded",
+      "bracketSpacing": true,
+      "bracketSameLine": false
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["**/*.ts", "**/*.tsx"],
+      "linter": {
+        "rules": {
+          "performance": {
+            "noBarrelFile": "off",
+            "noDelete": "off"
+          },
+          "correctness": {
+            "noUnusedVariables": "off",
+            "noUnusedFunctionParameters": "off",
+            "noUnusedImports": "off"
+          },
+          "complexity": {
+            "noExcessiveCognitiveComplexity": "off",
+            "useOptionalChain": "off",
+            "noForEach": "off"
+          },
+          "suspicious": {
+            "noExplicitAny": "off",
+            "useAwait": "off",
+            "noConsole": {
+              "level": "error",
+              "options": {
+                "allow": ["warn", "error"]
+              }
+            }
+          },
+          "style": {
+            "useConst": "error",
+            "useImportType": "off",
+            "noDefaultExport": "off",
+            "useNodejsImportProtocol": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/__tests__/**/*", "**/*.test.*", "**/*.spec.*"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
+    }
+  ]
+}

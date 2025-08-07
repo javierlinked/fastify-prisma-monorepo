@@ -1,0 +1,29 @@
+{
+  "name": "@asafe/services",
+  "version": "1.0.0",
+  "description": "Business logic services",
+  "main": "dist/index.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "prisma generate && tsc",
+    "test": "jest",
+    "db:migrate": "dotenv -e ../api/.env prisma migrate dev",
+    "db:generate": "dotenv -e ../api/.env prisma generate",
+    "db:studio": "dotenv -e ../api/.env prisma studio"
+  },
+  "dependencies": {
+    "@asafe/types": "^1.0.0",
+    "@prisma/client": "^6.13.0",
+    "bcryptjs": "^3.0.2"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^3.0.0",
+    "@types/jest": "^30.0.0",
+    "bcryptjs": "^3.0.2",
+    "dotenv-cli": "^10.0.0",
+    "jest": "^30.0.5",
+    "prisma": "^6.13.0",
+    "ts-jest": "^29.4.1",
+    "typescript": "^5.9.2"
+  }
+}
