@@ -1,0 +1,94 @@
+# ========================================
+# BUILD STAGE
+# ========================================
+FROM --platform=linux/amd64 node:20-alpine AS builder
+
+# Install build dependencies
+RUN apk add --no-cache python3 make g++
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files for better Docker layer caching
+COPY package.json yarn.lock ./
+COPY packages/api/package.json ./packages/api/
+COPY packages/services/package.json ./packages/services/
+COPY packages/utilities/package.json ./packages/utilities/
+COPY packages/types/package.json ./packages/types/
+
+# Install ALL dependencies (including devDependencies for building)
+RUN yarn install --frozen-lockfile
+
+# Copy source code
+COPY packages/ ./packages/
+COPY tsconfig.json ./
+
+# Generate Prisma client
+RUN yarn workspace @asafe/services db:generate
+
+# Build the application
+RUN yarn build
+
+# ========================================
+# DEPENDENCIES STAGE
+# ========================================
+FROM --platform=linux/amd64 node:20-alpine AS deps
+
+WORKDIR /app
+
+# Copy package files
+COPY package.json yarn.lock ./
+COPY packages/api/package.json ./packages/api/
+COPY packages/services/package.json ./packages/services/
+COPY packages/utilities/package.json ./packages/utilities/
+COPY packages/types/package.json ./packages/types/
+
+# Install ONLY production dependencies
+RUN yarn install --frozen-lockfile --production && \
+    yarn cache clean && \
+    # Remove unnecessary files
+    find node_modules -name "*.md" -delete && \
+    find node_modules -name "*.ts" -not -path "*/types/*" -delete && \
+    find node_modules -name "test" -type d -exec rm -rf {} + 2>/dev/null || true && \
+    find node_modules -name "tests" -type d -exec rm -rf {} + 2>/dev/null || true && \
+    find node_modules -name "*.test.js" -delete && \
+    find node_modules -name "*.spec.js" -delete && \
+    find node_modules -name "example" -type d -exec rm -rf {} + 2>/dev/null || true && \
+    find node_modules -name "examples" -type d -exec rm -rf {} + 2>/dev/null || true && \
+    find node_modules -name "benchmark" -type d -exec rm -rf {} + 2>/dev/null || true && \
+    find node_modules -name "benchmarks" -type d -exec rm -rf {} + 2>/dev/null || true
+
+# ========================================
+# PRODUCTION STAGE - DISTROLESS
+# ========================================
+FROM gcr.io/distroless/nodejs20-debian12:nonroot
+
+# Set working directory
+WORKDIR /app
+
+# Copy production dependencies
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy package.json files for workspace resolution
+COPY package.json yarn.lock ./
+COPY packages/api/package.json ./packages/api/
+COPY packages/services/package.json ./packages/services/
+COPY packages/utilities/package.json ./packages/utilities/
+COPY packages/types/package.json ./packages/types/
+
+# Copy built application from builder stage
+COPY --from=builder /app/packages/api/dist ./packages/api/dist
+COPY --from=builder /app/packages/services/dist ./packages/services/dist
+COPY --from=builder /app/packages/utilities/dist ./packages/utilities/dist
+COPY --from=builder /app/packages/types/dist ./packages/types/dist
+
+# Copy Prisma client and schema
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY packages/services/prisma/schema.prisma ./packages/services/prisma/
+
+# Expose port
+EXPOSE 3000
+
+# Start the application (distroless doesn't have shell, so we use direct node execution)
+CMD ["node", "packages/api/dist/index.js"]

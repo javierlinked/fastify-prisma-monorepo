@@ -1,0 +1,15 @@
+{
+  "name": "@asafe/types",
+  "version": "1.0.0",
+  "description": "Shared TypeScript types",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}

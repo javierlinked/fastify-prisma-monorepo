@@ -1,0 +1,40 @@
+{
+  "name": "fastify-prisma-monorepo",
+  "version": "1.0.0",
+  "description": "Technical Test: Node.js Developer with TypeScript, Fastify, Prisma, and Monorepo",
+  "private": true,
+  "license": "MIT",
+  "author": {
+    "name": "@javierlinked",
+    "email": "javierlinked@gmail.com",
+    "url": "https://github.com/javierlinked/fastify-prisma-monorepo"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "yarn build:types && yarn build:utilities && yarn build:services && yarn build:api",
+    "build:types": "yarn workspace @asafe/types build",
+    "build:utilities": "yarn workspace @asafe/utilities build",
+    "build:services": "yarn workspace @asafe/services build",
+    "build:api": "yarn workspace @asafe/api build",
+    "test": "yarn workspace @asafe/utilities test && yarn workspace @asafe/services test && yarn workspace @asafe/api test",
+    "dev": "dotenv -e .env yarn workspace @asafe/api dev",
+    "start": "yarn workspace @asafe/api start",
+    "db:migrate": "dotenv -e .env yarn workspace @asafe/services db:migrate",
+    "db:generate": "dotenv -e .env yarn workspace @asafe/services db:generate",
+    "db:studio": "dotenv -e .env yarn workspace @asafe/services db:studio",
+    "clean": "git clean -xfd",
+    "check": "biome check .",
+    "fix": "biome check --write ."
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.2.2",
+    "@kibertoad/biome-config": "^2.0.0",
+    "@types/node": "^24.3.0",
+    "typescript": "^5.9.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

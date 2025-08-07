@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: asafe-postgres-local
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: asafe_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_local_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: .
+    container_name: fastify-prisma-monorepo-local
+    environment:
+      # Use local postgres database
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/asafe_db?schema=public
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      PORT: 3000
+      HOST: 0.0.0.0
+      MAX_FILE_SIZE: 5242880
+      # AWS S3 Configuration for local development (optional)
+      AWS_REGION: eu-north-1
+      AWS_S3_BUCKET_NAME: asafe-uploads-dev
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_local_data:
