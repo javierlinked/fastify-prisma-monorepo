@@ -17,7 +17,6 @@ const uploadRoutes: FastifyPluginAsync = async fastify => {
     bucketName: process.env.AWS_S3_BUCKET_NAME || 'asafe-uploads-dev',
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    cloudFrontUrl: process.env.AWS_CLOUDFRONT_URL,
   };
 
   if (!s3Config.bucketName) {

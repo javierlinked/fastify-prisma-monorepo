@@ -221,7 +221,6 @@ export const awsConfigSchema = z.object({
   bucketName: z.string(),
   accessKeyId: z.string().optional(),
   secretAccessKey: z.string().optional(),
-  cloudFrontUrl: z.string().optional(),
 });
 
 export interface AWSConfig extends z.infer<typeof awsConfigSchema> {}

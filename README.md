@@ -48,7 +48,7 @@ types
 1. Clonar el repositorio:
 ```bash
 git clone https://github.com/javierlinked/fastify-prisma-monorepo
-cd asafe-1
+cd fastify-prisma-monorepo
 ```
 
 2. Instalar dependencias:

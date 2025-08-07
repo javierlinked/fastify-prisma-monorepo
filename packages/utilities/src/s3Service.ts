@@ -13,7 +13,6 @@ export interface S3Config {
   bucketName: string;
   accessKeyId?: string;
   secretAccessKey?: string;
-  cloudFrontUrl?: string;
   enableEncryption?: boolean;
   enablePublicRead?: boolean;
   maxFileSize?: number;
@@ -29,13 +28,11 @@ export interface S3UploadResult {
 export class S3Service {
   private s3Client: S3Client;
   private bucketName: string;
-  private cloudFrontUrl?: string;
   private enableEncryption: boolean;
   private enablePublicRead: boolean;
 
   constructor(config: S3Config) {
     this.bucketName = config.bucketName;
-    this.cloudFrontUrl = config.cloudFrontUrl;
     this.enableEncryption = config.enableEncryption ?? true;
     this.enablePublicRead = config.enablePublicRead ?? true;
 
@@ -155,23 +152,15 @@ export class S3Service {
    * @param key - The S3 key (filename/path) of the object
    */
   generatePublicUrl(key: string): string {
-    if (this.cloudFrontUrl) {
-      return `${this.cloudFrontUrl}/${key}`;
-    }
-
     return `https://${this.bucketName}.s3.amazonaws.com/${key}`;
   }
 
   /**
    * Extract S3 key from a full S3 URL
-   * @param url - The full S3 or CloudFront URL
+   * @param url - The full S3 URL
    */
   extractKeyFromUrl(url: string): string | null {
     try {
-      if (this.cloudFrontUrl && url.startsWith(this.cloudFrontUrl)) {
-        return url.replace(`${this.cloudFrontUrl}/`, '');
-      }
-
       if (url.includes('.s3.amazonaws.com/')) {
         return url.split('.s3.amazonaws.com/')[1];
       }
