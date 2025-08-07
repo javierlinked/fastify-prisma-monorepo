@@ -130,7 +130,6 @@ export function withErrorHandling(handler: Function) {
         handlePrismaError(err, reply);
         return;
       } catch (originalErr) {
-        // Continue with other error handling
       }
 
       if (err.statusCode) {

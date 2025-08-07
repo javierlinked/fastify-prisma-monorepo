@@ -238,16 +238,30 @@ Servidor principal de la API Fastify:
 - `POST /notifications/send/:userId` - Enviar notificación
 - `POST /notifications/broadcast` - Difundir notificación
 
-### Pruebas de WebSocket
 
-Para probar la funcionalidad de WebSocket, puedes usar el archivo `test-ws.html` incluido en el repositorio. Este archivo proporciona una interfaz simple para:
+## Notificaciones en Tiempo Real
 
-- Conectar/desconectar del WebSocket
-- Enviar notificaciones a usuarios específicos
-- Enviar notificaciones broadcast
-- Ver mensajes recibidos en tiempo real
+El proyecto incluye un sistema completo de notificaciones en tiempo real utilizando WebSockets:
 
-Simplemente abre el archivo `test-ws.html` en tu navegador mientras el servidor esté ejecutándose.
+### Características Principales
+
+- **Conexiones WebSocket autenticadas** con JWT
+- **Gestión automática de conexiones** con limpieza periódica
+- **Eventos automáticos** integrados en la lógica de negocio
+- **Cliente de prueba** incluido (`test-ws.html`). De uso local, se conecta a la instancia en AWS (o local).
+
+### Eventos Soportados
+
+- **NEW_POST**: Se envía cuando un usuario crea un nuevo post (a todos excepto al autor)
+- **USER_UPDATE**: Se envía cuando un usuario actualiza su perfil o foto
+- **SYSTEM**: Mensajes del sistema y confirmaciones de conexión
+
+### Endpoints Administrativos
+
+- `GET /api/notifications/connected` - Lista usuarios conectados
+- `GET /api/notifications/status/:userId` - Estado de conexión de usuario
+- `POST /api/notifications/send/:userId` - Enviar notificación específica
+- `POST /api/notifications/broadcast` - Difundir a todos los usuarios
 
 ## Despliegue
 
@@ -270,8 +284,8 @@ docker run -p 3000:3000 fastify-prisma-monorepo
 ### TODO
 
 - [ ] Dependecy injection
-- [ ] Better file handling on users PUT
-- [ ] Many more
+- [ ] Mejorar manejo de archivos en users PUT
+- [ ] Mucho más
 
 
 ## Licencia

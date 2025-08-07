@@ -7,7 +7,6 @@ import { serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod
 import { authMiddleware } from '../../src/middleware/auth';
 import authRoutes from '../../src/routes/auth';
 
-// Cast userService to jest mock for testing
 const mockUserService = userService as jest.Mocked<typeof userService>;
 
 describe('Auth Routes', () => {
@@ -16,19 +15,15 @@ describe('Auth Routes', () => {
   beforeAll(async () => {
     app = Fastify().withTypeProvider<ZodTypeProvider>();
 
-    // Set up Zod type provider
     app.setValidatorCompiler(validatorCompiler);
     app.setSerializerCompiler(serializerCompiler);
 
-    // Register JWT plugin
     await app.register(jwt, {
       secret: 'test-secret',
     });
 
-    // Add auth middleware
     app.decorate('authenticate', authMiddleware);
 
-    // Register auth routes
     await app.register(authRoutes, { prefix: '/auth' });
   });
 
@@ -37,7 +32,6 @@ describe('Auth Routes', () => {
   });
 
   beforeEach(() => {
-    // Reset all mocks before each test
     jest.clearAllMocks();
   });
 
@@ -63,7 +57,6 @@ describe('Auth Routes', () => {
         updatedAt: new Date(),
       };
 
-      // Mock UserService.createUser
       mockUserService.createUser.mockResolvedValue(createdUser);
 
       const response = await app.inject({
@@ -96,8 +89,6 @@ describe('Auth Routes', () => {
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.body);
       expect(body).toHaveProperty('error');
-      // Fastify's built-in validation returns "Bad Request" for schema validation errors
-      // Our custom Zod validation returns "Validation Error"
       expect(['Bad Request', 'Validation Error']).toContain(body.error);
     });
 
@@ -110,7 +101,6 @@ describe('Auth Routes', () => {
         lastName: 'User',
       };
 
-      // Mock Prisma unique constraint error
       const dbError = new Error('Unique constraint failed');
       (dbError as any).code = 'P2002';
       mockUserService.createUser.mockRejectedValue(dbError);
@@ -148,7 +138,6 @@ describe('Auth Routes', () => {
         updatedAt: new Date(),
       };
 
-      // Mock UserService methods
       mockUserService.getUserByEmail.mockResolvedValue(user);
       mockUserService.verifyPassword.mockResolvedValue(true);
 
@@ -177,7 +166,6 @@ describe('Auth Routes', () => {
         password: 'wrongpassword',
       };
 
-      // Mock UserService methods - user not found
       mockUserService.getUserByEmail.mockResolvedValue(null);
 
       const response = await app.inject({
@@ -211,7 +199,6 @@ describe('Auth Routes', () => {
         updatedAt: new Date(),
       };
 
-      // Mock UserService methods - wrong password
       mockUserService.getUserByEmail.mockResolvedValue(user);
       mockUserService.verifyPassword.mockResolvedValue(false);
 
@@ -242,7 +229,6 @@ describe('Auth Routes', () => {
         updatedAt: new Date(),
       };
 
-      // Create a valid token
       const token = app.jwt.sign({
         id: user.id,
         email: user.email,
@@ -250,7 +236,6 @@ describe('Auth Routes', () => {
         role: user.role,
       });
 
-      // Mock UserService.getUserById
       mockUserService.getUserById.mockResolvedValue(user);
 
       const response = await app.inject({
@@ -287,10 +272,8 @@ describe('Auth Routes', () => {
         role: UserRole.USER,
       };
 
-      // Create a valid token
       const token = app.jwt.sign(user);
 
-      // Mock UserService.getUserById to return null
       mockUserService.getUserById.mockResolvedValue(null);
 
       const response = await app.inject({

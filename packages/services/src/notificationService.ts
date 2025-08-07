@@ -69,7 +69,9 @@ export class NotificationService {
     });
 
     let sentToAtLeastOne = false;
-    userClients.forEach(client => {
+    const clientsCopy = [...userClients];
+    
+    clientsCopy.forEach(client => {
       if (client.socket.readyState === 1) {
         try {
           client.socket.send(message);

@@ -58,7 +58,6 @@ describe('Auth Middleware', () => {
         message: 'Invalid or missing token',
       });
       expect((mockRequest as any).user).toBeUndefined();
-      // Should return the reply object to stop execution
       expect(result).toBe(mockReply);
     });
 
@@ -215,7 +214,6 @@ describe('Auth Middleware', () => {
     });
 
     it('requireUser should allow both USER and ADMIN roles', async () => {
-      // Test with USER role
       const mockUser = {
         id: 'user-1',
         email: 'test@example.com',
@@ -231,11 +229,9 @@ describe('Auth Middleware', () => {
       expect(mockReply.status).not.toHaveBeenCalled();
       expect(result).toBeUndefined();
 
-      // Reset mocks for second test
       jest.clearAllMocks();
       mockRequest.jwtVerify = jest.fn();
 
-      // Test with ADMIN role
       const mockAdmin = {
         id: 'admin-1',
         email: 'admin@example.com',

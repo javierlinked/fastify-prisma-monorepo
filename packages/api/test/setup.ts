@@ -1,6 +1,4 @@
-// Mock the services package to provide test implementations
 jest.mock('@asafe/services', () => {
-  // Create mock service instances without requiring the actual module first
   const mockUserService = {
     createUser: jest.fn(),
     getUserById: jest.fn(),
@@ -21,10 +19,13 @@ jest.mock('@asafe/services', () => {
   };
 
   const mockNotificationService = {
-    addConnection: jest.fn(),
-    removeConnection: jest.fn(),
-    sendNotification: jest.fn(),
+    addClient: jest.fn(),
+    removeClient: jest.fn(),
+    sendToUser: jest.fn(),
     broadcast: jest.fn(),
+    getConnectedUsers: jest.fn().mockReturnValue([]),
+    getConnectionCount: jest.fn().mockReturnValue(0),
+    isUserConnected: jest.fn().mockReturnValue(false),
     cleanupInactiveConnections: jest.fn(),
   };
 
@@ -43,15 +44,12 @@ jest.mock('@asafe/services', () => {
   };
 });
 
-// Set test environment variables
 process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = 'test-secret';
 process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test_db';
 
-// Global test timeout
 jest.setTimeout(10000);
 
-// Basic setup test
 describe('Test Setup', () => {
   it('should have test environment configured', () => {
     expect(process.env.NODE_ENV).toBe('test');

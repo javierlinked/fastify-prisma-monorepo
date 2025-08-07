@@ -15,12 +15,16 @@ import { FastifyPluginAsync } from 'fastify';
 import { AuthenticatedRequest, requireAdmin, requireAuth } from '../middleware/auth';
 
 const notificationRoutes: FastifyPluginAsync = async fastify => {
-  setInterval(
+  const cleanupInterval = setInterval(
     () => {
       notificationService.cleanupInactiveConnections(30);
     },
     10 * 60 * 1000
   );
+  
+  fastify.addHook('onClose', async () => {
+    clearInterval(cleanupInterval);
+  });
 
   fastify.get<{
     Querystring: { token: string };
@@ -50,12 +54,29 @@ const notificationRoutes: FastifyPluginAsync = async fastify => {
               type: 'SYSTEM',
               message: 'Message received',
               data,
+              timestamp: new Date().toISOString(),
             })
           );
         } catch (error) {
           fastify.log.error('Error parsing WebSocket message:', error);
+          connection.send(
+            JSON.stringify({
+              type: 'SYSTEM',
+              message: 'Invalid message format',
+              timestamp: new Date().toISOString(),
+            })
+          );
         }
       });
+
+      connection.on('close', () => {
+        fastify.log.info(`User ${userId} disconnected from WebSocket`);
+      });
+
+      connection.on('error', (error) => {
+        fastify.log.error(`WebSocket error for user ${userId}:`, error);
+      });
+
     } catch (error) {
       fastify.log.error('WebSocket authentication failed:', error);
       connection.close(1008, 'Invalid token');

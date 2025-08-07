@@ -1,6 +1,7 @@
-import { CreatePostRequest, UpdatePostRequest } from '@asafe/types';
+import { CreatePostRequest, NotificationPayload, UpdatePostRequest } from '@asafe/types';
 import { Post, PrismaClient } from '@prisma/client';
 import { databaseService } from './databaseService';
+import { notificationService } from './notificationService';
 
 export class PostService {
   private prisma: PrismaClient;
@@ -10,13 +11,13 @@ export class PostService {
   }
 
   /**
-   * Creates a new post with author information
+   * Creates a new post with author information and sends real-time notifications
    * @param authorId - ID of the post author
    * @param data - Post creation data (title, content)
    * @returns Created post with author details
    */
   async createPost(authorId: string, data: CreatePostRequest): Promise<Post> {
-    return this.prisma.post.create({
+    const post = await this.prisma.post.create({
       data: {
         ...data,
         authorId,
@@ -25,6 +26,26 @@ export class PostService {
         author: true,
       },
     });
+
+    try {
+      const notification: NotificationPayload = {
+        type: 'NEW_POST',
+        message: `New post created: "${post.title}" by ${post.author?.username || 'Unknown'}`,
+        data: {
+          postId: post.id,
+          title: post.title,
+          authorId: post.authorId,
+          authorUsername: post.author?.username,
+          createdAt: post.createdAt,
+        },
+      };
+
+      notificationService.broadcast(notification, authorId);
+    } catch (error) {
+      console.error('Failed to send post creation notification:', error);
+    }
+
+    return post;
   }
 
   /**

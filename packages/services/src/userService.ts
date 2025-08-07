@@ -1,8 +1,9 @@
-import { CreateUserRequest, UpdateUserRequest, UserWithoutPassword } from '@asafe/types';
+import { CreateUserRequest, NotificationPayload, UpdateUserRequest, UserWithoutPassword } from '@asafe/types';
 import { FileUploadService } from '@asafe/utilities';
 import { PrismaClient, User, UserRole } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { databaseService } from './databaseService';
+import { notificationService } from './notificationService';
 
 export class UserService {
   private prisma: PrismaClient;
@@ -78,6 +79,10 @@ export class UserService {
   }
 
   async updateUser(id: string, data: UpdateUserRequest) {
+    const originalUser = await this.prisma.user.findUnique({
+      where: { id },
+    });
+
     // TODO: If updating profile picture, should delete the old one first
 
     const user = await this.prisma.user.update({
@@ -85,7 +90,36 @@ export class UserService {
       data,
     });
 
-    return this.excludePassword(user);
+    const updatedUser = this.excludePassword(user);
+
+    if (originalUser && (data.profilePicture || data.username)) {
+      try {
+        let updateMessage = 'Profile updated';
+        
+        if (data.profilePicture) {
+          updateMessage = 'Profile picture updated';
+        } else if (data.username) {
+          updateMessage = `Username changed to ${data.username}`;
+        }
+
+        const notification: NotificationPayload = {
+          type: 'USER_UPDATE',
+          message: `${originalUser.username} ${updateMessage}`,
+          data: {
+            userId: updatedUser.id,
+            username: updatedUser.username,
+            profilePicture: updatedUser.profilePicture,
+            updateType: data.profilePicture ? 'profile_picture' : 'username',
+          },
+        };
+
+        notificationService.broadcast(notification, id);
+      } catch (error) {
+        console.error('Failed to send user update notification:', error);
+      }
+    }
+
+    return updatedUser;
   }
 
   async deleteUser(id: string) {
@@ -97,7 +131,6 @@ export class UserService {
       throw new Error('User not found');
     }
 
-    // Delete profile picture from S3 if it exists
     if (user.profilePicture) {
       try {
         if (!this.fileUploadService) {
@@ -110,7 +143,6 @@ export class UserService {
       }
     }
 
-    // Delete the user from database
     await this.prisma.user.delete({
       where: { id },
     });

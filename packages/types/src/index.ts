@@ -205,7 +205,6 @@ export const fileUploadSchema = z.object({
   }),
 });
 
-// S3-specific response types
 export const s3UploadResultSchema = z.object({
   key: z.string(),
   url: z.string(),
@@ -215,7 +214,6 @@ export const s3UploadResultSchema = z.object({
 
 export interface S3UploadResult extends z.infer<typeof s3UploadResultSchema> {}
 
-// AWS configuration types
 export const awsConfigSchema = z.object({
   region: z.string(),
   bucketName: z.string(),
@@ -225,7 +223,6 @@ export const awsConfigSchema = z.object({
 
 export interface AWSConfig extends z.infer<typeof awsConfigSchema> {}
 
-// Enhanced upload result with S3 information
 export const uploadResultSchema = z.object({
   filename: z.string(),
   originalName: z.string(),
@@ -239,7 +236,6 @@ export const uploadResultSchema = z.object({
 
 export interface UploadResult extends z.infer<typeof uploadResultSchema> {}
 
-// File validation error schema
 export const fileValidationErrorSchema = z.object({
   error: z.string(),
   message: z.string(),

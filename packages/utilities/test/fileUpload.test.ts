@@ -1,7 +1,6 @@
 import { FileUploadService, UploadOptions } from '../src/fileUpload';
 import { S3Config } from '../src/s3Service';
 
-// Mock S3Service
 jest.mock('../src/s3Service', () => ({
   S3Service: jest.fn().mockImplementation(() => ({
     uploadFile: jest.fn().mockResolvedValue({
