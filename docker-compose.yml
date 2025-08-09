@@ -24,7 +24,7 @@ services:
     env_file:
       - ./packages/api/.env
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:password@postgres:5432/asafe_db?schema=public}
+      # Override defaults if needed, .env file values are used otherwise
       JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
       PORT: ${PORT:-3000}
       HOST: ${HOST:-0.0.0.0}

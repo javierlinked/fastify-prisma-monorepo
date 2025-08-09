@@ -1,9 +1,7 @@
 # ========================================
 # BUILD STAGE
 # ========================================
-# Use ARG for flexibility, defaulting to linux/amd64
-ARG TARGETPLATFORM=linux/amd64
-FROM --platform=$TARGETPLATFORM node:20-alpine AS builder
+FROM --platform=linux/amd64 node:20-alpine AS builder
 
 # Install build dependencies
 RUN apk add --no-cache python3 make g++
@@ -32,18 +30,10 @@ RUN yarn workspace @asafe/services db:generate
 RUN yarn build
 
 # ========================================
-# PRODUCTION STAGE
+# DEPENDENCIES STAGE
 # ========================================
-ARG TARGETPLATFORM=linux/amd64
-FROM --platform=$TARGETPLATFORM node:20-alpine AS production
+FROM --platform=linux/amd64 node:20-alpine AS deps
 
-# Install runtime dependencies only
-RUN apk add --no-cache curl dumb-init
-
-# Create app user for security
-RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
-
-# Set working directory
 WORKDIR /app
 
 # Copy package files
@@ -54,7 +44,37 @@ COPY packages/utilities/package.json ./packages/utilities/
 COPY packages/types/package.json ./packages/types/
 
 # Install ONLY production dependencies
-RUN yarn install --frozen-lockfile --production && yarn cache clean
+RUN yarn install --frozen-lockfile --production && \
+    yarn cache clean && \
+    # Remove unnecessary files
+    find node_modules -name "*.md" -delete && \
+    find node_modules -name "*.ts" -not -path "*/types/*" -delete && \
+    find node_modules -name "test" -type d -exec rm -rf {} + 2>/dev/null || true && \
+    find node_modules -name "tests" -type d -exec rm -rf {} + 2>/dev/null || true && \
+    find node_modules -name "*.test.js" -delete && \
+    find node_modules -name "*.spec.js" -delete && \
+    find node_modules -name "example" -type d -exec rm -rf {} + 2>/dev/null || true && \
+    find node_modules -name "examples" -type d -exec rm -rf {} + 2>/dev/null || true && \
+    find node_modules -name "benchmark" -type d -exec rm -rf {} + 2>/dev/null || true && \
+    find node_modules -name "benchmarks" -type d -exec rm -rf {} + 2>/dev/null || true
+
+# ========================================
+# PRODUCTION STAGE - DISTROLESS
+# ========================================
+FROM gcr.io/distroless/nodejs20-debian12:nonroot
+
+# Set working directory
+WORKDIR /app
+
+# Copy production dependencies
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy package.json files for workspace resolution
+COPY package.json yarn.lock ./
+COPY packages/api/package.json ./packages/api/
+COPY packages/services/package.json ./packages/services/
+COPY packages/utilities/package.json ./packages/utilities/
+COPY packages/types/package.json ./packages/types/
 
 # Copy built application from builder stage
 COPY --from=builder /app/packages/api/dist ./packages/api/dist
@@ -67,19 +87,8 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 COPY packages/services/prisma/schema.prisma ./packages/services/prisma/
 
-# Change ownership to nodejs user
-RUN chown -R nodejs:nodejs /app
-USER nodejs
-
 # Expose port
 EXPOSE 3000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:3000/health || exit 1
-
-# Use dumb-init to handle signals properly
-ENTRYPOINT ["dumb-init", "--"]
-
-# Start the application
-CMD ["yarn", "start"]
+# Start the application (distroless doesn't have shell, so we use direct node execution)
+CMD ["node", "packages/api/dist/index.js"]
