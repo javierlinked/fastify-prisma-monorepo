@@ -4,8 +4,6 @@
     "lib": [
       "ES2022"
     ],
-    "outDir": "./dist",
-    "rootDir": "./src",
     "module": "CommonJS",
     "moduleResolution": "Node",
     "esModuleInterop": true,

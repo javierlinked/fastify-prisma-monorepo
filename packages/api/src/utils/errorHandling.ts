@@ -129,8 +129,7 @@ export function withErrorHandling(handler: Function) {
       try {
         handlePrismaError(err, reply);
         return;
-      } catch (originalErr) {
-      }
+      } catch (originalErr) {}
 
       if (err.statusCode) {
         return reply.status(err.statusCode).send({

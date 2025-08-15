@@ -70,7 +70,7 @@ export class NotificationService {
 
     let sentToAtLeastOne = false;
     const clientsCopy = [...userClients];
-    
+
     clientsCopy.forEach(client => {
       if (client.socket.readyState === 1) {
         try {

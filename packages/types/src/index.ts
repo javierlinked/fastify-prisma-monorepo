@@ -1,6 +1,9 @@
 import { z } from 'zod';
 
-export { UserRole } from '@prisma/client';
+export enum UserRole {
+  USER = 'USER',
+  ADMIN = 'ADMIN',
+}
 
 export interface UserWithoutPassword extends Omit<User, 'password'> {}
 

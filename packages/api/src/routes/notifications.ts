@@ -21,7 +21,7 @@ const notificationRoutes: FastifyPluginAsync = async fastify => {
     },
     10 * 60 * 1000
   );
-  
+
   fastify.addHook('onClose', async () => {
     clearInterval(cleanupInterval);
   });
@@ -73,10 +73,9 @@ const notificationRoutes: FastifyPluginAsync = async fastify => {
         fastify.log.info(`User ${userId} disconnected from WebSocket`);
       });
 
-      connection.on('error', (error) => {
+      connection.on('error', error => {
         fastify.log.error(`WebSocket error for user ${userId}:`, error);
       });
-
     } catch (error) {
       fastify.log.error('WebSocket authentication failed:', error);
       connection.close(1008, 'Invalid token');

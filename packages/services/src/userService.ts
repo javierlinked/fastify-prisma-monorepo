@@ -1,4 +1,9 @@
-import { CreateUserRequest, NotificationPayload, UpdateUserRequest, UserWithoutPassword } from '@asafe/types';
+import {
+  CreateUserRequest,
+  NotificationPayload,
+  UpdateUserRequest,
+  UserWithoutPassword,
+} from '@asafe/types';
 import { FileUploadService } from '@asafe/utilities';
 import { PrismaClient, User, UserRole } from '@prisma/client';
 import bcrypt from 'bcryptjs';
@@ -95,7 +100,7 @@ export class UserService {
     if (originalUser && (data.profilePicture || data.username)) {
       try {
         let updateMessage = 'Profile updated';
-        
+
         if (data.profilePicture) {
           updateMessage = 'Profile picture updated';
         } else if (data.username) {
