@@ -11,7 +11,7 @@ import {
 import { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { requireAuth } from '../middleware/auth';
 
-import { handleError, sendNotFoundError, sendUnauthorizedError } from '../utils/errorHandling';
+import { handleError, sendNotFoundError, sendErrorResponse } from '../utils/errorHandling';
 
 const authRoutes: FastifyPluginAsyncZod = async fastify => {
   fastify.route({
@@ -59,13 +59,13 @@ const authRoutes: FastifyPluginAsyncZod = async fastify => {
       const user = await userService.getUserByEmail(email);
 
       if (!user) {
-        return sendUnauthorizedError(reply);
+        return sendErrorResponse(reply, 401, 'Unauthorized', 'Invalid credentials');
       }
 
       const isValidPassword = await userService.verifyPassword(password, user.password);
 
       if (!isValidPassword) {
-        return sendUnauthorizedError(reply);
+        return sendErrorResponse(reply, 401, 'Unauthorized', 'Invalid credentials');
       }
 
       const token = generateJwtToken(fastify, user);

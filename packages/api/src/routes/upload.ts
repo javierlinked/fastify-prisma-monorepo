@@ -7,7 +7,7 @@ import {
 import { FileUploadService } from '@asafe/utilities';
 import { FastifyPluginAsync } from 'fastify';
 import { AuthenticatedRequest, requireAuth } from '../middleware/auth';
-import { sendBadRequestError } from '../utils/errorHandling';
+import { sendErrorResponse } from '../utils/errorHandling';
 
 const uploadRoutes: FastifyPluginAsync = async fastify => {
   fastify.setValidatorCompiler(() => () => ({}));
@@ -51,7 +51,7 @@ const uploadRoutes: FastifyPluginAsync = async fastify => {
         const data = await request.file();
 
         if (!data) {
-          return sendBadRequestError(reply, 'No file uploaded');
+          return sendErrorResponse(reply, 400, 'Bad Request', 'No file uploaded');
         }
 
         const uploadResult = await uploadService.uploadFile(data, `profile-${user.id}`);
@@ -75,7 +75,7 @@ const uploadRoutes: FastifyPluginAsync = async fastify => {
         fastify.log.error(err);
 
         if (err.message.includes('File size exceeds') || err.message.includes('not allowed')) {
-          return sendBadRequestError(reply, err.message);
+          return sendErrorResponse(reply, 400, 'Bad Request', err.message);
         }
 
         if (err.message.includes('AWS') || err.message.includes('S3')) {

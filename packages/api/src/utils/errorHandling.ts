@@ -62,18 +62,6 @@ export function sendForbiddenError(reply: FastifyReply, message = 'Access denied
   return sendErrorResponse(reply, 403, 'Forbidden', message);
 }
 
-export function sendUnauthorizedError(reply: FastifyReply, message = 'Unauthorized') {
-  return sendErrorResponse(reply, 401, 'Unauthorized', message);
-}
-
-export function sendConflictError(reply: FastifyReply, message = 'Resource already exists') {
-  return sendErrorResponse(reply, 409, 'Conflict', message);
-}
-
-export function sendBadRequestError(reply: FastifyReply, message = 'Bad Request') {
-  return sendErrorResponse(reply, 400, 'Bad Request', message);
-}
-
 /**
  * Common error handling logic that can be used by both route handlers and the global error handler
  */
@@ -82,17 +70,13 @@ export function handleError(err: any, reply: FastifyReply, request?: any): boole
     request.log.error(err);
   }
 
-  if (err.validation && Array.isArray(err.validation)) {
-    sendErrorResponse(reply, 400, 'Validation Error', "Request doesn't match the schema", {
-      issues: err.validation,
-      method: request?.method,
-      url: request?.url,
-    });
-    return true;
-  }
-
   if (err.validation) {
-    sendErrorResponse(reply, 400, 'Validation Error', err.message, err.validation);
+    sendErrorResponse(
+      reply,
+      400,
+      'Validation Error',
+      err.message || "Request doesn't match the schema"
+    );
     return true;
   }
 
