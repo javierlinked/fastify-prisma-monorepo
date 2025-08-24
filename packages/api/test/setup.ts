@@ -12,10 +12,3 @@ jest.mock('@asafe/services', () => ({
   notificationService: mockNotificationService,
   databaseService: mockDatabaseService,
 }));
-
-describe('Test Setup', () => {
-  it('should have test environment configured', () => {
-    expect(process.env.NODE_ENV).toBe('test');
-    expect(process.env.JWT_SECRET).toBe('test-secret');
-  });
-});

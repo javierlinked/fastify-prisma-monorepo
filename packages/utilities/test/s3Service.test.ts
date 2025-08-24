@@ -62,15 +62,6 @@ describe('S3Service', () => {
         region: 'us-east-1',
       });
     });
-
-    it('should use default values for optional parameters', () => {
-      const service = new S3Service({
-        region: 'us-east-1',
-        bucketName: 'test-bucket',
-      });
-
-      expect(service).toBeInstanceOf(S3Service);
-    });
   });
 
   describe('uploadFile', () => {

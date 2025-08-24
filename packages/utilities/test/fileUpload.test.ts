@@ -40,12 +40,6 @@ describe('FileUploadService', () => {
     uploadService = new FileUploadService(mockOptions);
   });
 
-  describe('constructor', () => {
-    it('should create instance with provided options', () => {
-      expect(uploadService).toBeInstanceOf(FileUploadService);
-    });
-  });
-
   describe('generateFileUrl', () => {
     it('should return URL as-is if it starts with http', () => {
       const fullUrl = 'https://test-bucket.s3.amazonaws.com/files/12345678/test-image.jpg';

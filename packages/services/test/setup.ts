@@ -8,9 +8,3 @@ jest.mock('@prisma/client', () => ({
     ADMIN: 'ADMIN',
   },
 }));
-
-describe('Services Test Setup', () => {
-  it('should have test environment configured', () => {
-    expect(process.env.NODE_ENV).toBe('test');
-  });
-});

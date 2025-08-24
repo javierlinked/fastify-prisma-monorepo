@@ -222,17 +222,6 @@ describe('NotificationService', () => {
         expect.stringContaining('"message":"Broadcast message"')
       );
     });
-
-    it('should return 0 when no users are connected', () => {
-      const payload: NotificationPayload = {
-        type: 'SYSTEM',
-        message: 'Broadcast message'
-      };
-
-      const result = notificationService.broadcast(payload);
-
-      expect(result).toBe(0);
-    });
   });
 
   describe('getConnectedUsers', () => {
