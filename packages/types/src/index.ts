@@ -1,5 +1,32 @@
 import { z } from 'zod';
 
+const commonFields = {
+  email: z.string().email('Invalid email format'),
+  username: z
+    .string()
+    .min(3, 'Username must be at least 3 characters')
+    .max(30, 'Username must be at most 30 characters'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  optionalString: z.string().optional(),
+  postTitle: z
+    .string()
+    .min(1, 'Title is required')
+    .max(200, 'Title must be at most 200 characters'),
+  postContent: z.string().min(1, 'Content is required'),
+  notificationType: z.enum(['NEW_POST', 'USER_UPDATE', 'SYSTEM']),
+};
+
+const createPaginatedResponse = <T extends z.ZodTypeAny>(itemSchema: T) =>
+  z.object({
+    items: z.array(itemSchema),
+    pagination: z.object({
+      page: z.number(),
+      limit: z.number(),
+      total: z.number(),
+      totalPages: z.number(),
+    }),
+  });
+
 export enum UserRole {
   USER = 'USER',
   ADMIN = 'ADMIN',
@@ -15,56 +42,37 @@ export interface NotificationPayload {
 }
 
 export const updateUserSchema = z.object({
-  username: z
-    .string()
-    .min(3, 'Username must be at least 3 characters')
-    .max(30, 'Username must be at most 30 characters')
-    .optional(),
-  firstName: z.string().optional(),
-  lastName: z.string().optional(),
-  profilePicture: z.string().optional(),
+  username: commonFields.username.optional(),
+  firstName: commonFields.optionalString,
+  lastName: commonFields.optionalString,
+  profilePicture: commonFields.optionalString,
 });
 
 export interface UpdateUserRequest extends z.infer<typeof updateUserSchema> {}
 
+export const baseUserSchema = z.object({
+  email: commonFields.email,
+  username: commonFields.username,
+  password: commonFields.password,
+  firstName: commonFields.optionalString,
+  lastName: commonFields.optionalString,
+});
+
+export const registerSchema = baseUserSchema;
+export const createUserSchema = baseUserSchema;
+
 export const createPostSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(200, 'Title must be at most 200 characters'),
-  content: z.string().min(1, 'Content is required'),
+  title: commonFields.postTitle,
+  content: commonFields.postContent,
 });
 
 export interface CreatePostRequest extends z.infer<typeof createPostSchema> {}
 
-export const registerSchema = z.object({
-  email: z.string().email('Invalid email format'),
-  username: z
-    .string()
-    .min(3, 'Username must be at least 3 characters')
-    .max(30, 'Username must be at most 30 characters'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  firstName: z.string().optional(),
-  lastName: z.string().optional(),
-});
-
-export const createUserSchema = z.object({
-  email: z.string().email('Invalid email format'),
-  username: z
-    .string()
-    .min(3, 'Username must be at least 3 characters')
-    .max(30, 'Username must be at most 30 characters'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  firstName: z.string().optional(),
-  lastName: z.string().optional(),
-});
-
 export interface CreateUserRequest extends z.infer<typeof createUserSchema> {}
 
 export const updatePostSchema = z.object({
-  title: z
-    .string()
-    .min(1, 'Title must not be empty')
-    .max(200, 'Title must be at most 200 characters')
-    .optional(),
-  content: z.string().min(1, 'Content must not be empty').optional(),
+  title: commonFields.postTitle.optional(),
+  content: commonFields.postContent.optional(),
 });
 
 export interface UpdatePostRequest extends z.infer<typeof updatePostSchema> {}
@@ -96,7 +104,7 @@ export const postSchema = z.object({
 export interface Post extends z.infer<typeof postSchema> {}
 
 export const loginSchema = z.object({
-  email: z.string().email('Invalid email format'),
+  email: commonFields.email,
   password: z.string().min(1, 'Password is required'),
 });
 
@@ -130,25 +138,9 @@ export const messageResponseSchema = z.object({
   message: z.string(),
 });
 
-export const paginatedUsersResponseSchema = z.object({
-  items: z.array(userSchema),
-  pagination: z.object({
-    page: z.number(),
-    limit: z.number(),
-    total: z.number(),
-    totalPages: z.number(),
-  }),
-});
+export const paginatedUsersResponseSchema = createPaginatedResponse(userSchema);
 
-export const paginatedPostsResponseSchema = z.object({
-  items: z.array(postSchema),
-  pagination: z.object({
-    page: z.number(),
-    limit: z.number(),
-    total: z.number(),
-    totalPages: z.number(),
-  }),
-});
+export const paginatedPostsResponseSchema = createPaginatedResponse(postSchema);
 
 export const profilePictureUploadResponseSchema = z.object({
   message: z.string(),
@@ -160,16 +152,15 @@ export const profilePictureUploadResponseSchema = z.object({
   }),
 });
 
-export const sendNotificationRequestSchema = z.object({
-  type: z.enum(['NEW_POST', 'USER_UPDATE', 'SYSTEM']),
+const baseNotificationSchema = z.object({
+  type: commonFields.notificationType,
   message: z.string(),
   data: z.record(z.string(), z.any()).optional(),
 });
 
-export const broadcastRequestSchema = z.object({
-  type: z.enum(['NEW_POST', 'USER_UPDATE', 'SYSTEM']),
-  message: z.string(),
-  data: z.record(z.string(), z.any()).optional(),
+export const sendNotificationRequestSchema = baseNotificationSchema;
+
+export const broadcastRequestSchema = baseNotificationSchema.extend({
   excludeUserId: z.string().optional(),
 });
 

@@ -44,14 +44,15 @@ describe('NotificationService', () => {
       );
     });
 
-    it('should handle multiple connections for the same user', () => {
+    it('should replace existing connection for the same user', () => {
       const userId = 'user-123';
 
       notificationService.addClient(userId, mockSocket);
       notificationService.addClient(userId, mockSocket2);
 
-      expect(notificationService.getConnectionCount()).toBe(2);
+      expect(notificationService.getConnectionCount()).toBe(1);
       expect(notificationService.isUserConnected(userId)).toBe(true);
+      expect(mockSocket.close).toHaveBeenCalled(); // First socket should be closed
     });
 
     it('should register event handlers for socket close and error', () => {
@@ -65,18 +66,17 @@ describe('NotificationService', () => {
   });
 
   describe('removeClient', () => {
-    it('should remove a specific client connection', () => {
+    it('should remove the user connection', () => {
       const userId = 'user-123';
 
       notificationService.addClient(userId, mockSocket);
-      notificationService.addClient(userId, mockSocket2);
       
-      expect(notificationService.getConnectionCount()).toBe(2);
+      expect(notificationService.getConnectionCount()).toBe(1);
 
       notificationService.removeClient(userId, mockSocket);
       
-      expect(notificationService.getConnectionCount()).toBe(1);
-      expect(notificationService.isUserConnected(userId)).toBe(true);
+      expect(notificationService.getConnectionCount()).toBe(0);
+      expect(notificationService.isUserConnected(userId)).toBe(false);
     });
 
     it('should remove user entry when no connections remain', () => {
@@ -257,7 +257,7 @@ describe('NotificationService', () => {
   describe('getConnectionCount', () => {
     it('should return total number of connections', () => {
       notificationService.addClient('user-1', mockSocket);
-      notificationService.addClient('user-1', mockSocket2); // Same user, multiple connections
+      notificationService.addClient('user-2', mockSocket2);
 
       const count = notificationService.getConnectionCount();
 
@@ -305,10 +305,9 @@ describe('NotificationService', () => {
       notificationService.addClient(userId, mockSocket);
       expect(notificationService.isUserConnected(userId)).toBe(true);
 
-      // Advance time by 31 minutes
-      jest.advanceTimersByTime(31 * 60 * 1000);
+      mockSocket.readyState = 3; // WebSocket.CLOSED
 
-      notificationService.cleanupInactiveConnections(30);
+      notificationService.cleanupInactiveConnections();
 
       expect(notificationService.isUserConnected(userId)).toBe(false);
       expect(mockSocket.close).toHaveBeenCalled();
@@ -318,11 +317,9 @@ describe('NotificationService', () => {
       const userId = 'user-1';
       
       notificationService.addClient(userId, mockSocket);
-      
-      // Advance time by 25 minutes (less than 30)
-      jest.advanceTimersByTime(25 * 60 * 1000);
+      mockSocket.readyState = 1; // WebSocket.OPEN
 
-      notificationService.cleanupInactiveConnections(30);
+      notificationService.cleanupInactiveConnections();
 
       expect(notificationService.isUserConnected(userId)).toBe(true);
       expect(mockSocket.close).not.toHaveBeenCalled();
@@ -334,7 +331,7 @@ describe('NotificationService', () => {
       notificationService.addClient(userId, mockSocket);
       mockSocket.readyState = 3; // WebSocket.CLOSED
 
-      notificationService.cleanupInactiveConnections(30);
+      notificationService.cleanupInactiveConnections();
 
       expect(notificationService.isUserConnected(userId)).toBe(false);
       expect(mockSocket.close).toHaveBeenCalled();
@@ -348,11 +345,10 @@ describe('NotificationService', () => {
         throw new Error('Close failed');
       });
 
-      // Advance time to make connection inactive
-      jest.advanceTimersByTime(31 * 60 * 1000);
+      mockSocket.readyState = 3; // WebSocket.CLOSED
 
       expect(() => {
-        notificationService.cleanupInactiveConnections(30);
+        notificationService.cleanupInactiveConnections();
       }).not.toThrow();
 
       expect(notificationService.isUserConnected(userId)).toBe(false);

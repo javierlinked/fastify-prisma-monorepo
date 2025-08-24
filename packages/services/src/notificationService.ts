@@ -10,24 +10,23 @@ export interface WebSocketConnection {
 export interface ConnectedClient {
   userId: string;
   socket: WebSocketConnection;
-  lastSeen: Date;
 }
 
 export class NotificationService {
-  private clients: Map<string, ConnectedClient[]> = new Map();
+  private clients: Map<string, ConnectedClient> = new Map();
 
   addClient(userId: string, socket: WebSocketConnection): void {
+    const existingClient = this.clients.get(userId);
+    if (existingClient) {
+      existingClient.socket.close();
+    }
+
     const client: ConnectedClient = {
       userId,
       socket,
-      lastSeen: new Date(),
     };
 
-    if (!this.clients.has(userId)) {
-      this.clients.set(userId, []);
-    }
-
-    this.clients.get(userId)!.push(client);
+    this.clients.set(userId, client);
 
     socket.on('close', () => {
       this.removeClient(userId, socket);
@@ -45,21 +44,15 @@ export class NotificationService {
   }
 
   removeClient(userId: string, socket: WebSocketConnection): void {
-    const userClients = this.clients.get(userId);
-    if (userClients) {
-      const index = userClients.findIndex(client => client.socket === socket);
-      if (index !== -1) {
-        userClients.splice(index, 1);
-        if (userClients.length === 0) {
-          this.clients.delete(userId);
-        }
-      }
+    const client = this.clients.get(userId);
+    if (client && client.socket === socket) {
+      this.clients.delete(userId);
     }
   }
 
   sendToUser(userId: string, payload: NotificationPayload): boolean {
-    const userClients = this.clients.get(userId);
-    if (!userClients || userClients.length === 0) {
+    const client = this.clients.get(userId);
+    if (!client) {
       return false;
     }
 
@@ -68,25 +61,19 @@ export class NotificationService {
       timestamp: new Date().toISOString(),
     });
 
-    let sentToAtLeastOne = false;
-    const clientsCopy = [...userClients];
-
-    clientsCopy.forEach(client => {
-      if (client.socket.readyState === 1) {
-        try {
-          client.socket.send(message);
-          client.lastSeen = new Date();
-          sentToAtLeastOne = true;
-        } catch (error) {
-          console.error(`Failed to send message to user ${userId}:`, error);
-          this.removeClient(userId, client.socket);
-        }
-      } else {
+    if (client.socket.readyState === 1) {
+      try {
+        client.socket.send(message);
+        return true;
+      } catch (error) {
+        console.error(`Failed to send message to user ${userId}:`, error);
         this.removeClient(userId, client.socket);
       }
-    });
+    } else {
+      this.removeClient(userId, client.socket);
+    }
 
-    return sentToAtLeastOne;
+    return false;
   }
 
   broadcast(payload: NotificationPayload, excludeUserId?: string): number {
@@ -110,36 +97,20 @@ export class NotificationService {
   }
 
   getConnectionCount(): number {
-    let count = 0;
-    this.clients.forEach(clients => {
-      count += clients.length;
-    });
-    return count;
+    return this.clients.size;
   }
 
   isUserConnected(userId: string): boolean {
-    const userClients = this.clients.get(userId);
-    return userClients ? userClients.length > 0 : false;
+    return this.clients.has(userId);
   }
 
-  cleanupInactiveConnections(maxInactiveMinutes = 30): void {
-    const cutoffTime = new Date(Date.now() - maxInactiveMinutes * 60 * 1000);
-
-    this.clients.forEach((clients, userId) => {
-      const activeClients = clients.filter(client => {
-        if (client.lastSeen < cutoffTime || client.socket.readyState !== 1) {
-          try {
-            client.socket.close();
-          } catch (error) {}
-          return false;
-        }
-        return true;
-      });
-
-      if (activeClients.length === 0) {
+  cleanupInactiveConnections(): void {
+    this.clients.forEach((client, userId) => {
+      if (client.socket.readyState !== 1) {
+        try {
+          client.socket.close();
+        } catch (error) {}
         this.clients.delete(userId);
-      } else {
-        this.clients.set(userId, activeClients);
       }
     });
   }
