@@ -11,7 +11,7 @@ import {
 import { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { requireAuth } from '../middleware/auth';
 
-import { handleError, sendNotFoundError, sendErrorResponse } from '../utils/errorHandling';
+import { handleError, sendErrorResponse, sendNotFoundError } from '../utils/errorHandling';
 
 const authRoutes: FastifyPluginAsyncZod = async fastify => {
   fastify.route({
