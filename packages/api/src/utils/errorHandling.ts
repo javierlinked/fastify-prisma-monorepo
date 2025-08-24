@@ -8,142 +8,103 @@ export interface ErrorResponse {
 }
 
 /**
- * Handles common Prisma database errors and sends appropriate HTTP responses
- * @param err - Prisma error object
+ * Creates a standardized error response
  * @param reply - Fastify reply object
+ * @param statusCode - HTTP status code
+ * @param error - Error type
+ * @param message - Error message
+ * @param details - Optional additional details
+ * @returns Fastify reply object
  */
-export function handlePrismaError(err: any, reply: FastifyReply): void {
-  if (err.code === 'P2002') {
-    reply.status(409).send({
-      error: 'Conflict',
-      message: 'Resource already exists',
-      statusCode: 409,
-    });
-    return;
-  }
-
-  if (err.code === 'P2025') {
-    reply.status(404).send({
-      error: 'Not Found',
-      message: 'Resource not found',
-      statusCode: 404,
-    });
-    return;
-  }
-
-  throw err;
+export function sendErrorResponse(
+  reply: FastifyReply,
+  statusCode: number,
+  error: string,
+  message: string,
+  details?: any
+) {
+  return reply.status(statusCode).send({
+    error,
+    message,
+    statusCode,
+    ...(details && { details }),
+  });
 }
 
 /**
- * Handles user-specific Prisma errors with contextual messages
- * @param err - Prisma error object
- * @param reply - Fastify reply object
+ * Handles Prisma database errors and sends appropriate HTTP responses
  */
-export function handleUserPrismaError(err: any, reply: FastifyReply): void {
+export function handleResourcePrismaError(
+  err: any,
+  reply: FastifyReply,
+  resourceType = 'Resource'
+): boolean {
   if (err.code === 'P2002') {
-    reply.status(409).send({
-      error: 'Conflict',
-      message: 'Email or username already exists',
-      statusCode: 409,
-    });
-    return;
+    const message = `${resourceType} already exists`;
+
+    sendErrorResponse(reply, 409, 'Conflict', message);
+    return true;
   }
 
   if (err.code === 'P2025') {
-    reply.status(404).send({
-      error: 'Not Found',
-      message: 'User not found',
-      statusCode: 404,
-    });
-    return;
-  }
-
-  throw err;
-}
-
-export function handlePostPrismaError(err: any, reply: FastifyReply): boolean {
-  if (err.code === 'P2025') {
-    reply.status(404).send({
-      error: 'Not Found',
-      message: 'Post not found',
-      statusCode: 404,
-    });
+    sendErrorResponse(reply, 404, 'Not Found', `${resourceType} not found`);
     return true;
   }
 
   return false;
 }
 
-export function sendNotFoundError(reply: FastifyReply, resource = 'Resource') {
-  return reply.status(404).send({
-    error: 'Not Found',
-    message: `${resource} not found`,
-    statusCode: 404,
-  });
+export function sendNotFoundError(reply: FastifyReply, message = 'Resource not found') {
+  return sendErrorResponse(reply, 404, 'Not Found', message);
 }
 
 export function sendForbiddenError(reply: FastifyReply, message = 'Access denied') {
-  return reply.status(403).send({
-    error: 'Forbidden',
-    message,
-    statusCode: 403,
-  });
+  return sendErrorResponse(reply, 403, 'Forbidden', message);
 }
 
 export function sendUnauthorizedError(reply: FastifyReply, message = 'Unauthorized') {
-  return reply.status(401).send({
-    error: 'Unauthorized',
-    message,
-    statusCode: 401,
-  });
+  return sendErrorResponse(reply, 401, 'Unauthorized', message);
 }
 
 export function sendConflictError(reply: FastifyReply, message = 'Resource already exists') {
-  return reply.status(409).send({
-    error: 'Conflict',
-    message,
-    statusCode: 409,
-  });
+  return sendErrorResponse(reply, 409, 'Conflict', message);
 }
 
 export function sendBadRequestError(reply: FastifyReply, message = 'Bad Request') {
-  return reply.status(400).send({
-    error: 'Bad Request',
-    message,
-    statusCode: 400,
-  });
+  return sendErrorResponse(reply, 400, 'Bad Request', message);
 }
 
 /**
- * Higher-order function that wraps route handlers with comprehensive error handling
- * @param handler - Route handler function to wrap
- * @returns Wrapped handler with error handling
+ * Common error handling logic that can be used by both route handlers and the global error handler
  */
-export function withErrorHandling(handler: Function) {
-  return async (request: any, reply: any) => {
-    try {
-      return await handler(request, reply);
-    } catch (err: any) {
-      request.log?.error(err);
+export function handleError(err: any, reply: FastifyReply, request?: any): boolean {
+  if (request?.log) {
+    request.log.error(err);
+  }
 
-      try {
-        handlePrismaError(err, reply);
-        return;
-      } catch (originalErr) {}
+  if (err.validation && Array.isArray(err.validation)) {
+    sendErrorResponse(reply, 400, 'Validation Error', "Request doesn't match the schema", {
+      issues: err.validation,
+      method: request?.method,
+      url: request?.url,
+    });
+    return true;
+  }
 
-      if (err.statusCode) {
-        return reply.status(err.statusCode).send({
-          error: err.name || 'Error',
-          message: err.message,
-          statusCode: err.statusCode,
-        });
-      }
+  if (err.validation) {
+    sendErrorResponse(reply, 400, 'Validation Error', err.message, err.validation);
+    return true;
+  }
 
-      return reply.status(500).send({
-        error: 'Internal Server Error',
-        message: 'Something went wrong',
-        statusCode: 500,
-      });
-    }
-  };
+  if (handleResourcePrismaError(err, reply)) {
+    return true;
+  }
+
+  if (err.statusCode) {
+    sendErrorResponse(reply, err.statusCode, err.name || 'Error', err.message);
+    return true;
+  }
+
+  sendErrorResponse(reply, 500, 'Internal Server Error', 'Something went wrong');
+  return true;
 }

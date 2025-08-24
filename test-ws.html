@@ -99,8 +99,6 @@
     <div id="messages"></div>
     
     <div class="controls">
-        <input type="text" id="messageInput" placeholder="Enter test message" onkeypress="handleKeyPress(event)">
-        <button onclick="sendMessage()">Send Test Message</button>
         <button onclick="clearMessages()" class="clear-btn">Clear Messages</button>
     </div>
     
@@ -114,7 +112,7 @@
                 <li>Other users update their profiles</li>
                 <li>Admins send direct notifications or broadcasts</li>
             </ul>
-            <li>You can send test messages to verify the connection is working</li>
+            <li>This is a one-way notification system - you will only receive messages</li>
         </ul>
     </div>
     
@@ -210,36 +208,8 @@
             };
         }
         
-        function sendMessage() {
-            if (!ws || ws.readyState !== WebSocket.OPEN) {
-                alert('WebSocket is not connected');
-                return;
-            }
-            
-            const input = document.getElementById('messageInput');
-            if (!input.value.trim()) {
-                alert('Please enter a message');
-                return;
-            }
-            
-            const message = {
-                type: 'TEST',
-                message: input.value,
-                timestamp: new Date().toISOString()
-            };
-            
-            ws.send(JSON.stringify(message));
-            input.value = '';
-        }
-        
         function clearMessages() {
             messagesDiv.innerHTML = '';
-        }
-        
-        function handleKeyPress(event) {
-            if (event.key === 'Enter') {
-                sendMessage();
-            }
         }
         
         window.onload = function() {

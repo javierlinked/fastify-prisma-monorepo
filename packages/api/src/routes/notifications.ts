@@ -43,39 +43,6 @@ const notificationRoutes: FastifyPluginAsync = async fastify => {
       notificationService.addClient(userId, connection);
 
       fastify.log.info(`User ${userId} connected to WebSocket`);
-
-      connection.on('message', (message: any) => {
-        try {
-          const data = JSON.parse(message.toString());
-          fastify.log.info(`Received message from user ${userId}:`, data);
-
-          connection.send(
-            JSON.stringify({
-              type: 'SYSTEM',
-              message: 'Message received',
-              data,
-              timestamp: new Date().toISOString(),
-            })
-          );
-        } catch (error) {
-          fastify.log.error('Error parsing WebSocket message:', error);
-          connection.send(
-            JSON.stringify({
-              type: 'SYSTEM',
-              message: 'Invalid message format',
-              timestamp: new Date().toISOString(),
-            })
-          );
-        }
-      });
-
-      connection.on('close', () => {
-        fastify.log.info(`User ${userId} disconnected from WebSocket`);
-      });
-
-      connection.on('error', error => {
-        fastify.log.error(`WebSocket error for user ${userId}:`, error);
-      });
     } catch (error) {
       fastify.log.error('WebSocket authentication failed:', error);
       connection.close(1008, 'Invalid token');
@@ -204,6 +171,7 @@ const notificationRoutes: FastifyPluginAsync = async fastify => {
         return reply.status(403).send({
           error: 'Forbidden',
           message: 'You can only check your own connection status',
+          statusCode: 403,
         });
       }
 

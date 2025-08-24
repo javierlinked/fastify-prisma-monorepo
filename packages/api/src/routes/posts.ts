@@ -52,14 +52,8 @@ const postRoutes: FastifyPluginAsyncZod = async fastify => {
     },
     handler: async (request, reply) => {
       const user = (request as AuthenticatedRequest).user;
-
-      try {
-        const post = await postService.createPost(user.id, request.body);
-        return reply.status(201).send(post);
-      } catch (err) {
-        fastify.log.error(err);
-        throw err;
-      }
+      const post = await postService.createPost(user.id, request.body);
+      return reply.status(201).send(post);
     },
   });
 
@@ -107,19 +101,8 @@ const postRoutes: FastifyPluginAsyncZod = async fastify => {
     handler: async (request, reply) => {
       const { id } = request.params;
       const user = (request as AuthenticatedRequest).user;
-
-      try {
-        const post = await postService.updatePost(id, user.id, request.body);
-        return post;
-      } catch (err: any) {
-        if (err.message.includes('not found')) {
-          return sendNotFoundError(reply, err.message);
-        }
-        if (err.message.includes('permission')) {
-          return sendForbiddenError(reply, err.message);
-        }
-        throw err;
-      }
+      const post = await postService.updatePost(id, user.id, request.body);
+      return post;
     },
   });
 
@@ -141,19 +124,8 @@ const postRoutes: FastifyPluginAsyncZod = async fastify => {
     handler: async (request, reply) => {
       const { id } = request.params;
       const user = (request as AuthenticatedRequest).user;
-
-      try {
-        await postService.deletePost(id, user.id);
-        return reply.status(204).send();
-      } catch (err: any) {
-        if (err.message.includes('not found')) {
-          return sendNotFoundError(reply, err.message);
-        }
-        if (err.message.includes('permission')) {
-          return sendForbiddenError(reply, err.message);
-        }
-        throw err;
-      }
+      await postService.deletePost(id, user.id);
+      return reply.status(204).send();
     },
   });
 

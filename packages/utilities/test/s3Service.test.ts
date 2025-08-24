@@ -1,5 +1,5 @@
 import { S3Service, S3Config } from '../src/s3Service';
-import { S3Client, DeleteObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { Readable } from 'stream';
 
@@ -31,7 +31,6 @@ describe('S3Service', () => {
       accessKeyId: 'test-access-key',
       secretAccessKey: 'test-secret-key',
       enableEncryption: true,
-      enablePublicRead: true,
     };
 
     (S3Client as jest.MockedClass<typeof S3Client>).mockImplementation(() => mockS3Client as any);
@@ -179,40 +178,6 @@ describe('S3Service', () => {
     });
   });
 
-  describe('fileExists', () => {
-    it('should return true when file exists', async () => {
-      mockS3Client.send.mockResolvedValue({});
-
-      const exists = await s3Service.fileExists('test/file.txt');
-
-      expect(exists).toBe(true);
-      expect(mockS3Client.send).toHaveBeenCalledWith(
-        expect.any(HeadObjectCommand)
-      );
-      expect(mockS3Client.send).toHaveBeenCalledTimes(1);
-    });
-
-    it('should return false when file does not exist', async () => {
-      const error = new Error('Not found');
-      error.name = 'NotFound';
-      mockS3Client.send.mockRejectedValue(error);
-
-      const exists = await s3Service.fileExists('test/file.txt');
-
-      expect(exists).toBe(false);
-    });
-
-    it('should throw error for other S3 errors', async () => {
-      const error = new Error('Access denied');
-      error.name = 'AccessDenied';
-      mockS3Client.send.mockRejectedValue(error);
-
-      await expect(s3Service.fileExists('test/file.txt')).rejects.toThrow(
-        'Failed to check if file exists in S3: AccessDenied: Access denied'
-      );
-    });
-  });
-
   describe('generatePublicUrl', () => {
     it('should generate URL for us-east-1 region', () => {
       const url = s3Service.generatePublicUrl('test/file.txt');
@@ -250,50 +215,6 @@ describe('S3Service', () => {
     it('should handle URLs with error gracefully', () => {
       const key = s3Service.extractKeyFromUrl('invalid-url');
       expect(key).toBeNull();
-    });
-  });
-
-  describe('getFileInfo', () => {
-    it('should get file info successfully', async () => {
-      const mockResponse = {
-        ContentType: 'image/jpeg',
-        ContentLength: 1024,
-        LastModified: new Date('2023-01-01'),
-        ETag: 'test-etag',
-      };
-      mockS3Client.send.mockResolvedValue(mockResponse);
-
-      const info = await s3Service.getFileInfo('test/file.jpg');
-
-      expect(info).toEqual({
-        contentType: 'image/jpeg',
-        contentLength: 1024,
-        lastModified: new Date('2023-01-01'),
-        etag: 'test-etag',
-      });
-    });
-
-    it('should handle missing properties with defaults', async () => {
-      const mockResponse = {}; // Empty response
-      mockS3Client.send.mockResolvedValue(mockResponse);
-
-      const info = await s3Service.getFileInfo('test/file.jpg');
-
-      expect(info).toEqual({
-        contentType: 'application/octet-stream',
-        contentLength: 0,
-        lastModified: expect.any(Date),
-        etag: '',
-      });
-    });
-
-    it('should handle get file info errors', async () => {
-      const error = new Error('File info failed');
-      mockS3Client.send.mockRejectedValue(error);
-
-      await expect(s3Service.getFileInfo('test/file.txt')).rejects.toThrow(
-        'Failed to get file info from S3: Error: File info failed'
-      );
     });
   });
 });

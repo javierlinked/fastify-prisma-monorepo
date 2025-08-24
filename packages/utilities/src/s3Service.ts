@@ -1,10 +1,4 @@
-import {
-  DeleteObjectCommand,
-  HeadObjectCommand,
-  PutObjectCommand,
-  S3Client,
-  ServerSideEncryption,
-} from '@aws-sdk/client-s3';
+import { DeleteObjectCommand, S3Client, ServerSideEncryption } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { Readable } from 'stream';
 
@@ -14,8 +8,6 @@ export interface S3Config {
   accessKeyId?: string;
   secretAccessKey?: string;
   enableEncryption?: boolean;
-  enablePublicRead?: boolean;
-  maxFileSize?: number;
 }
 
 export interface S3UploadResult {
@@ -29,14 +21,12 @@ export class S3Service {
   private s3Client: S3Client;
   private bucketName: string;
   private enableEncryption: boolean;
-  private enablePublicRead: boolean;
   private region: string;
 
   constructor(config: S3Config) {
     this.bucketName = config.bucketName;
     this.region = config.region;
     this.enableEncryption = config.enableEncryption ?? true;
-    this.enablePublicRead = config.enablePublicRead ?? true;
 
     const clientConfig: any = {
       region: config.region,
@@ -80,13 +70,6 @@ export class S3Service {
         uploadParams.ServerSideEncryption = ServerSideEncryption.AES256;
       }
 
-      // TODO: no pude configurar bien los ACL
-      // if (this.enablePublicRead) {
-      //   uploadParams.ACL = 'public-read';
-      // } else {
-      //   uploadParams.ACL = 'private';
-      // }
-
       const upload = new Upload({
         client: this.s3Client,
         params: uploadParams,
@@ -129,27 +112,6 @@ export class S3Service {
   }
 
   /**
-   * Check if a file exists in S3
-   * @param key - The S3 key (filename/path) of the object
-   */
-  async fileExists(key: string): Promise<boolean> {
-    try {
-      const command = new HeadObjectCommand({
-        Bucket: this.bucketName,
-        Key: key,
-      });
-
-      await this.s3Client.send(command);
-      return true;
-    } catch (error: any) {
-      if (error.name === 'NotFound') {
-        return false;
-      }
-      throw new Error(`Failed to check if file exists in S3: ${error}`);
-    }
-  }
-
-  /**
    * Generate a public URL for an S3 object
    * @param key - The S3 key (filename/path) of the object
    */
@@ -178,35 +140,6 @@ export class S3Service {
       return null;
     } catch (error) {
       return null;
-    }
-  }
-
-  /**
-   * Get file information from S3
-   * @param key - The S3 key (filename/path) of the object
-   */
-  async getFileInfo(key: string): Promise<{
-    contentType: string;
-    contentLength: number;
-    lastModified: Date;
-    etag: string;
-  }> {
-    try {
-      const command = new HeadObjectCommand({
-        Bucket: this.bucketName,
-        Key: key,
-      });
-
-      const result = await this.s3Client.send(command);
-
-      return {
-        contentType: result.ContentType || 'application/octet-stream',
-        contentLength: result.ContentLength || 0,
-        lastModified: result.LastModified || new Date(),
-        etag: result.ETag || '',
-      };
-    } catch (error) {
-      throw new Error(`Failed to get file info from S3: ${error}`);
     }
   }
 }

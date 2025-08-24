@@ -25,7 +25,6 @@ const uploadRoutes: FastifyPluginAsync = async fastify => {
 
   const uploadService = new FileUploadService({
     s3Config,
-    maxFileSize: Number.parseInt(process.env.MAX_FILE_SIZE || '5242880'),
     allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
   });
 
@@ -84,12 +83,14 @@ const uploadRoutes: FastifyPluginAsync = async fastify => {
           return reply.status(500).send({
             error: 'Upload Service Error',
             message: 'Failed to upload file to storage service',
+            statusCode: 500,
           });
         }
 
         return reply.status(500).send({
           error: 'Internal Server Error',
           message: 'Failed to upload file',
+          statusCode: 500,
         });
       }
     }

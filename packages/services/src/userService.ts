@@ -27,7 +27,6 @@ export class UserService {
     if (s3Config.bucketName && s3Config.accessKeyId && s3Config.secretAccessKey) {
       this.fileUploadService = new FileUploadService({
         s3Config,
-        maxFileSize: Number.parseInt(process.env.MAX_FILE_SIZE || '5242880'),
         allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
       });
     }

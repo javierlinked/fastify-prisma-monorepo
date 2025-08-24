@@ -19,6 +19,7 @@ import notificationRoutes from './routes/notifications';
 import postRoutes from './routes/posts';
 import uploadRoutes from './routes/upload';
 import userRoutes from './routes/users';
+import { handleError } from './utils/errorHandling';
 
 const port = Number.parseInt(process.env.PORT || '3000');
 const host = process.env.HOST || '0.0.0.0';
@@ -90,42 +91,7 @@ app.get('/health', async (request, reply) => {
 });
 
 app.setErrorHandler((error, request, reply) => {
-  app.log.error(error);
-
-  if (hasZodFastifySchemaValidationErrors(error)) {
-    return reply.code(400).send({
-      error: 'Validation Error',
-      message: "Request doesn't match the schema",
-      statusCode: 400,
-      details: {
-        issues: error.validation,
-        method: request.method,
-        url: request.url,
-      },
-    });
-  }
-
-  if (error.validation) {
-    reply.status(400).send({
-      error: 'Validation Error',
-      message: error.message,
-      details: error.validation,
-    });
-    return;
-  }
-
-  if (error.statusCode) {
-    reply.status(error.statusCode).send({
-      error: error.name,
-      message: error.message,
-    });
-    return;
-  }
-
-  reply.status(500).send({
-    error: 'Internal Server Error',
-    message: 'Something went wrong',
-  });
+  handleError(error, reply, request);
 });
 
 async function start() {

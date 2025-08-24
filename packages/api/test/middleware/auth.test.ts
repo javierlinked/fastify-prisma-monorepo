@@ -56,6 +56,7 @@ describe('Auth Middleware', () => {
       expect(mockReply.send).toHaveBeenCalledWith({
         error: 'Unauthorized',
         message: 'Invalid or missing token',
+        statusCode: 401,
       });
       expect((mockRequest as any).user).toBeUndefined();
       expect(result).toBe(mockReply);
@@ -73,6 +74,7 @@ describe('Auth Middleware', () => {
       expect(mockReply.send).toHaveBeenCalledWith({
         error: 'Unauthorized',
         message: 'Invalid or missing token',
+        statusCode: 401,
       });
       expect((mockRequest as any).user).toBeUndefined();
       expect(result).toBe(mockReply);
@@ -137,6 +139,7 @@ describe('Auth Middleware', () => {
       expect(mockReply.send).toHaveBeenCalledWith({
         error: 'Forbidden',
         message: 'Insufficient permissions',
+        statusCode: 403,
       });
       expect(result).toBe(mockReply);
     });
@@ -265,6 +268,7 @@ describe('Auth Middleware', () => {
       expect(mockReply.send).toHaveBeenCalledWith({
         error: 'Forbidden',
         message: 'Insufficient permissions',
+        statusCode: 403,
       });
       expect(result).toBe(mockReply);
     });
@@ -332,6 +336,7 @@ describe('Auth Middleware', () => {
       expect(mockReply.send).toHaveBeenCalledWith({
         error: 'Unauthorized',
         message: 'Invalid or missing token',
+        statusCode: 401,
       });
       expect(result).toBe(mockReply);
     });

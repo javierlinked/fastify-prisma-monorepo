@@ -34,7 +34,6 @@ describe('FileUploadService', () => {
     
     mockOptions = {
       s3Config: mockS3Config,
-      maxFileSize: 5 * 1024 * 1024, // 5MB
       allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
       allowedFileExtensions: ['.jpg', '.jpeg', '.png', '.gif', '.webp'],
     };
@@ -84,19 +83,6 @@ describe('FileUploadService', () => {
       return readable;
     };
 
-    it('should reject files that are too large', async () => {
-      const largeBuffer = Buffer.alloc(10 * 1024 * 1024); // 10MB
-      const mockData = {
-        file: createMockStream(largeBuffer),
-        mimetype: 'image/jpeg',
-        filename: 'large-image.jpg',
-      };
-
-      await expect(uploadService.uploadFile(mockData, 'test')).rejects.toThrow(
-        'File size exceeds maximum allowed size'
-      );
-    });
-
     it('should reject files with disallowed MIME types', async () => {
       const smallBuffer = Buffer.alloc(1024); // 1KB
       const mockData = {
@@ -120,19 +106,6 @@ describe('FileUploadService', () => {
 
       await expect(uploadService.uploadFile(mockData, 'test')).rejects.toThrow(
         'File is empty'
-      );
-    });
-
-    it('should reject files with invalid filename characters', async () => {
-      const validBuffer = Buffer.alloc(1024);
-      const mockData = {
-        file: createMockStream(validBuffer),
-        mimetype: 'image/jpeg',
-        filename: '../../../evil.jpg', // Path traversal attempt
-      };
-
-      await expect(uploadService.uploadFile(mockData, 'test')).rejects.toThrow(
-        'Invalid filename - contains unsafe characters'
       );
     });
 
@@ -174,16 +147,6 @@ describe('FileUploadService', () => {
       const fileUrl = 'https://test-bucket.s3.amazonaws.com/files/test.jpg';
       
       await expect(uploadService.deleteFile(fileUrl)).resolves.not.toThrow();
-    });
-  });
-
-  describe('fileExists', () => {
-    it('should check if file exists', async () => {
-      const fileUrl = 'https://test-bucket.s3.amazonaws.com/files/test.jpg';
-      
-      const exists = await uploadService.fileExists(fileUrl);
-      
-      expect(exists).toBe(true);
     });
   });
 });

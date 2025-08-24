@@ -11,11 +11,7 @@ import {
 import { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { requireAuth } from '../middleware/auth';
 
-import {
-  handleUserPrismaError,
-  sendNotFoundError,
-  sendUnauthorizedError,
-} from '../utils/errorHandling';
+import { handleError, sendNotFoundError, sendUnauthorizedError } from '../utils/errorHandling';
 
 const authRoutes: FastifyPluginAsyncZod = async fastify => {
   fastify.route({
@@ -39,8 +35,8 @@ const authRoutes: FastifyPluginAsyncZod = async fastify => {
         const response = { token, user };
 
         return reply.status(201).send(response);
-      } catch (err: any) {
-        return handleUserPrismaError(err, reply);
+      } catch (err) {
+        handleError(err, reply, request);
       }
     },
   });
@@ -60,32 +56,23 @@ const authRoutes: FastifyPluginAsyncZod = async fastify => {
     handler: async (request, reply) => {
       const { email, password } = request.body;
 
-      try {
-        const user = await userService.getUserByEmail(email);
+      const user = await userService.getUserByEmail(email);
 
-        if (!user) {
-          return sendUnauthorizedError(reply);
-        }
-
-        const isValidPassword = await userService.verifyPassword(password, user.password);
-
-        if (!isValidPassword) {
-          return sendUnauthorizedError(reply);
-        }
-
-        const token = generateJwtToken(fastify, user);
-
-        const response = { token, user };
-
-        return response;
-      } catch (err) {
-        fastify.log.error(err);
-        return reply.status(500).send({
-          error: 'Internal Server Error',
-          message: 'Something went wrong during login',
-          statusCode: 500,
-        });
+      if (!user) {
+        return sendUnauthorizedError(reply);
       }
+
+      const isValidPassword = await userService.verifyPassword(password, user.password);
+
+      if (!isValidPassword) {
+        return sendUnauthorizedError(reply);
+      }
+
+      const token = generateJwtToken(fastify, user);
+
+      const response = { token, user };
+
+      return response;
     },
   });
 

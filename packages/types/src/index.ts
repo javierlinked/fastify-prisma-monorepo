@@ -198,7 +198,7 @@ export const userStatusResponseSchema = z.object({
 export const errorResponseSchema = z.object({
   error: z.string(),
   message: z.string(),
-  statusCode: z.number().optional(),
+  statusCode: z.number(),
   details: z.any().optional(),
 });
 

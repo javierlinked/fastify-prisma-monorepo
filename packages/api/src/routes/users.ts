@@ -14,18 +14,10 @@ import { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { AuthenticatedRequest, requireAdmin, requireAuth } from '../middleware/auth';
 
-import {
-  handleUserPrismaError,
-  sendForbiddenError,
-  sendNotFoundError,
-} from '../utils/errorHandling';
+import { sendForbiddenError, sendNotFoundError } from '../utils/errorHandling';
 import { paginateResponse } from '../utils/pagination';
 
 const userRoutes: FastifyPluginAsyncZod = async fastify => {
-  /**
-   * Get all users with pagination
-   * Only accessible by admins
-   */
   fastify.route({
     method: 'GET',
     url: '/',
@@ -48,10 +40,6 @@ const userRoutes: FastifyPluginAsyncZod = async fastify => {
     },
   });
 
-  /**
-   * Create a new user
-   * Only accessible by admins
-   */
   fastify.route({
     method: 'POST',
     url: '/',
@@ -67,19 +55,11 @@ const userRoutes: FastifyPluginAsyncZod = async fastify => {
       },
     },
     handler: async (request, reply) => {
-      try {
-        const user = await userService.createUser(request.body);
-        return reply.status(201).send(user);
-      } catch (err: any) {
-        return handleUserPrismaError(err, reply);
-      }
+      const user = await userService.createUser(request.body);
+      return reply.status(201).send(user);
     },
   });
 
-  /**
-   * Get user by ID
-   * Accessible by anyone
-   */
   fastify.route({
     method: 'GET',
     url: '/:id',
@@ -105,10 +85,6 @@ const userRoutes: FastifyPluginAsyncZod = async fastify => {
     },
   });
 
-  /**
-   * Get current user's profile
-   * Accessible by authenticated users
-   */
   fastify.route({
     method: 'GET',
     url: '/me/profile',
@@ -134,10 +110,6 @@ const userRoutes: FastifyPluginAsyncZod = async fastify => {
     },
   });
 
-  /**
-   * Update user profile
-   * Users can update their own profile, admins can update any profile
-   */
   fastify.route({
     method: 'PUT',
     url: '/:id',
@@ -163,19 +135,11 @@ const userRoutes: FastifyPluginAsyncZod = async fastify => {
         return sendForbiddenError(reply, 'You can only update your own profile');
       }
 
-      try {
-        const user = await userService.updateUser(id, request.body);
-        return user;
-      } catch (err: any) {
-        return handleUserPrismaError(err, reply);
-      }
+      const user = await userService.updateUser(id, request.body);
+      return user;
     },
   });
 
-  /**
-   * Delete user
-   * Users can delete their own account, admins can delete any account
-   */
   fastify.route({
     method: 'DELETE',
     url: '/:id',
@@ -199,12 +163,8 @@ const userRoutes: FastifyPluginAsyncZod = async fastify => {
         return sendForbiddenError(reply, 'You can only delete your own account');
       }
 
-      try {
-        await userService.deleteUser(id);
-        return reply.status(204).send();
-      } catch (err: any) {
-        return handleUserPrismaError(err, reply);
-      }
+      await userService.deleteUser(id);
+      return reply.status(204).send();
     },
   });
 };

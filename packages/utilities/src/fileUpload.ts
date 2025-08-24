@@ -1,13 +1,9 @@
-import * as crypto from 'crypto';
 import { Readable } from 'stream';
 import { S3Config, S3Service, S3UploadResult } from './s3Service';
 
 export interface UploadOptions {
   s3Config: S3Config;
-  maxFileSize: number;
   allowedMimeTypes: string[];
-  enableVirusScan?: boolean;
-  maxFilesPerUser?: number;
   allowedFileExtensions?: string[];
 }
 
@@ -50,8 +46,7 @@ export class FileUploadService {
     const extension = this.getFileExtension(data.filename);
     const uniqueFilename = `${timestamp}-${sanitizedFilename}${extension}`;
 
-    const contentHash = this.generateContentHash(fileBuffer);
-    const s3Key = `files/${contentHash.substring(0, 8)}/${uniqueFilename}`;
+    const s3Key = `files/${uniqueFilename}`;
 
     try {
       const s3Result: S3UploadResult = await this.s3Service.uploadFile(
@@ -62,9 +57,6 @@ export class FileUploadService {
           originalName: data.filename,
           uploadedBy: sanitizedFilename,
           uploadedAt: new Date().toISOString(),
-          contentHash: contentHash,
-          fileSize: fileBuffer.length.toString(),
-          validated: 'true',
         }
       );
 
@@ -91,12 +83,6 @@ export class FileUploadService {
       throw new Error('File is empty');
     }
 
-    if (fileBuffer.length > this.options.maxFileSize) {
-      throw new Error(
-        `File size exceeds maximum allowed size of ${this.options.maxFileSize} bytes`
-      );
-    }
-
     if (!this.options.allowedMimeTypes.includes(data.mimetype)) {
       throw new Error(`File type ${data.mimetype} is not allowed`);
     }
@@ -110,16 +96,15 @@ export class FileUploadService {
     }
 
     if (!this.isValidFilename(data.filename)) {
-      throw new Error('Invalid filename - contains unsafe characters');
+      throw new Error('Invalid filename');
     }
   }
 
   /**
-   * Check if filename contains safe characters only
+   * Check if filename is valid
    */
   private isValidFilename(filename: string): boolean {
-    const validFilenameRegex = /^[a-zA-Z0-9\-_. ]+\.[a-zA-Z0-9]+$/;
-    return validFilenameRegex.test(filename) && filename.length <= 255 && !filename.includes('..');
+    return filename.length > 0 && filename.length <= 255 && !filename.includes('/');
   }
 
   /**
@@ -127,17 +112,10 @@ export class FileUploadService {
    */
   private sanitizeFilename(filename: string): string {
     return filename
-      .replace(/[^a-zA-Z0-9\-_]/g, '-')
+      .replace(/[^\w\-_.]/g, '-')
       .replace(/--+/g, '-')
       .replace(/^-+|-+$/g, '')
       .substring(0, 50);
-  }
-
-  /**
-   * Generate SHA-256 hash of file content for integrity checking
-   */
-  private generateContentHash(buffer: Buffer): string {
-    return crypto.createHash('sha256').update(buffer).digest('hex');
   }
 
   private getFileExtension(filename: string): string {
@@ -176,22 +154,6 @@ export class FileUploadService {
       }
     } catch (error: any) {
       throw new Error(`Failed to delete file: ${error.message}`);
-    }
-  }
-
-  /**
-   * Check if a file exists in S3
-   * @param fileUrl - The S3 URL or filename to check
-   */
-  async fileExists(fileUrl: string): Promise<boolean> {
-    try {
-      const s3Key = this.s3Service.extractKeyFromUrl(fileUrl);
-      if (!s3Key) {
-        return await this.s3Service.fileExists(fileUrl);
-      }
-      return await this.s3Service.fileExists(s3Key);
-    } catch (error) {
-      return false;
     }
   }
 }
