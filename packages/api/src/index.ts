@@ -1,4 +1,5 @@
-import { databaseService } from '@asafe/services';
+import 'reflect-metadata';
+import { container, DatabaseService } from '@asafe/services';
 import cors from '@fastify/cors';
 import jwt from '@fastify/jwt';
 import multipart from '@fastify/multipart';
@@ -110,6 +111,7 @@ async function start() {
 
 process.on('SIGINT', async () => {
   app.log.info('Received SIGINT, shutting down gracefully');
+  const databaseService = container.resolve(DatabaseService);
   await databaseService.disconnect();
   await app.close();
   process.exit(0);
@@ -117,6 +119,7 @@ process.on('SIGINT', async () => {
 
 process.on('SIGTERM', async () => {
   app.log.info('Received SIGTERM, shutting down gracefully');
+  const databaseService = container.resolve(DatabaseService);
   await databaseService.disconnect();
   await app.close();
   process.exit(0);

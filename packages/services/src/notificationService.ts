@@ -1,18 +1,15 @@
+import 'reflect-metadata';
 import { NotificationPayload } from '@asafe/types';
-
-export interface WebSocketConnection {
-  send(data: string): void;
-  close(code?: number, reason?: string): void;
-  on(event: string, listener: (...args: any[]) => void): void;
-  readyState: number;
-}
+import { singleton } from 'tsyringe';
+import { INotificationService, WebSocketConnection } from './interfaces';
 
 export interface ConnectedClient {
   userId: string;
   socket: WebSocketConnection;
 }
 
-export class NotificationService {
+@singleton()
+export class NotificationService implements INotificationService {
   private clients: Map<string, ConnectedClient> = new Map();
 
   addClient(userId: string, socket: WebSocketConnection): void {
@@ -115,5 +112,3 @@ export class NotificationService {
     });
   }
 }
-
-export const notificationService = new NotificationService();

@@ -1,4 +1,4 @@
-import { userService } from '@asafe/services';
+import { container, UserService } from '@asafe/services';
 import {
   authResponseSchema,
   errorResponseSchema,
@@ -28,6 +28,7 @@ const authRoutes: FastifyPluginAsyncZod = async fastify => {
     },
     handler: async (request, reply) => {
       try {
+        const userService = container.resolve(UserService);
         const user = await userService.createUser(request.body);
 
         const token = generateJwtToken(fastify, user);
@@ -56,6 +57,7 @@ const authRoutes: FastifyPluginAsyncZod = async fastify => {
     handler: async (request, reply) => {
       const { email, password } = request.body;
 
+      const userService = container.resolve(UserService);
       const user = await userService.getUserByEmail(email);
 
       if (!user) {
@@ -132,6 +134,7 @@ const authRoutes: FastifyPluginAsyncZod = async fastify => {
     },
     handler: async (request, reply) => {
       const user = request.user!;
+      const userService = container.resolve(UserService);
       const userData = await userService.getUserById(user.id);
 
       if (!userData) {

@@ -1,4 +1,5 @@
-import { notificationService } from '@asafe/services';
+import 'reflect-metadata';
+import { container, NotificationService } from '@asafe/services';
 import { UserRole } from '@asafe/types';
 import jwt from '@fastify/jwt';
 import websocket from '@fastify/websocket';
@@ -8,7 +9,30 @@ import { serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod
 import { authMiddleware } from '../../src/middleware/auth';
 import notificationRoutes from '../../src/routes/notifications';
 
-const mockNotificationService = notificationService as jest.Mocked<typeof notificationService>;
+// Mock the container to return a mocked NotificationService
+const mockNotificationService = {
+  addClient: jest.fn(),
+  removeClient: jest.fn(),
+  sendToUser: jest.fn(),
+  broadcast: jest.fn(),
+  getConnectedUsers: jest.fn(),
+  getConnectionCount: jest.fn(),
+  isUserConnected: jest.fn(),
+  cleanupInactiveConnections: jest.fn(),
+} as any;
+
+// Mock the container.resolve method
+jest.mock('@asafe/services', () => ({
+  container: {
+    resolve: jest.fn((serviceClass) => {
+      if (serviceClass === NotificationService) {
+        return mockNotificationService;
+      }
+      return {};
+    }),
+  },
+  NotificationService: jest.fn(),
+}));
 
 describe('Notification Routes', () => {
   let app: FastifyInstance;

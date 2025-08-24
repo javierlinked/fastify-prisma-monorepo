@@ -26,7 +26,7 @@ describe('FileUploadService', () => {
 
   beforeEach(() => {
     mockS3Config = {
-      region: 'us-east-1',
+      region: 'eu-north-1',
       bucketName: 'test-bucket',
       accessKeyId: 'test-access-key',
       secretAccessKey: 'test-secret-key',

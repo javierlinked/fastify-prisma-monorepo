@@ -1,13 +1,27 @@
-import { NotificationService, WebSocketConnection, ConnectedClient } from '../src/notificationService';
+import 'reflect-metadata';
+import { container } from 'tsyringe';
+import { NotificationService } from '../src/notificationService';
+import { WebSocketConnection } from '../src/interfaces';
 import { NotificationPayload } from '@asafe/types';
+
+// Import ConnectedClient interface from the service file
+import type { ConnectedClient } from '../src/notificationService';
 
 describe('NotificationService', () => {
   let notificationService: NotificationService;
   let mockSocket: jest.Mocked<WebSocketConnection>;
   let mockSocket2: jest.Mocked<WebSocketConnection>;
+  let testContainer: any;
 
   beforeEach(() => {
-    notificationService = new NotificationService();
+    // Create a child container for testing
+    testContainer = container.createChildContainer();
+    
+    // Register NotificationService
+    testContainer.register(NotificationService, { useClass: NotificationService });
+    
+    // Resolve from container to demonstrate DI pattern
+    notificationService = testContainer.resolve(NotificationService);
     
     mockSocket = {
       send: jest.fn(),
@@ -22,6 +36,10 @@ describe('NotificationService', () => {
       on: jest.fn(),
       readyState: 1, // WebSocket.OPEN
     };
+  });
+
+  afterEach(() => {
+    testContainer.clearInstances();
   });
 
   afterEach(() => {

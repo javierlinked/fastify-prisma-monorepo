@@ -1,13 +1,18 @@
+import 'reflect-metadata';
 import { CreatePostRequest, NotificationPayload, UpdatePostRequest } from '@asafe/types';
 import { Post, PrismaClient } from '@prisma/client';
-import { databaseService } from './databaseService';
-import { notificationService } from './notificationService';
+import { inject, injectable } from 'tsyringe';
+import { IDatabaseService, INotificationService } from './interfaces';
 
+@injectable()
 export class PostService {
   private prisma: PrismaClient;
 
-  constructor() {
-    this.prisma = databaseService.getClient();
+  constructor(
+    private databaseService: IDatabaseService,
+    private notificationService: INotificationService
+  ) {
+    this.prisma = this.databaseService.getClient();
   }
 
   /**
@@ -40,7 +45,7 @@ export class PostService {
         },
       };
 
-      notificationService.broadcast(notification, authorId);
+      this.notificationService.broadcast(notification, authorId);
     } catch (error) {
       console.error('Failed to send post creation notification:', error);
     }
@@ -193,5 +198,3 @@ export class PostService {
     };
   }
 }
-
-export const postService = new PostService();

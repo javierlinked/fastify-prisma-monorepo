@@ -10,7 +10,7 @@ jest.mock('@aws-sdk/lib-storage');
 const mockS3Client = {
   send: jest.fn(),
   config: {
-    region: jest.fn().mockResolvedValue('us-east-1'),
+    region: jest.fn().mockResolvedValue('eu-north-1'),
   },
 };
 
@@ -26,7 +26,7 @@ describe('S3Service', () => {
     jest.clearAllMocks();
     
     mockConfig = {
-      region: 'us-east-1',
+      region: 'eu-north-1',
       bucketName: 'test-bucket',
       accessKeyId: 'test-access-key',
       secretAccessKey: 'test-secret-key',
@@ -42,7 +42,7 @@ describe('S3Service', () => {
   describe('constructor', () => {
     it('should create S3Service with correct configuration', () => {
       expect(S3Client).toHaveBeenCalledWith({
-        region: 'us-east-1',
+        region: 'eu-north-1',
         credentials: {
           accessKeyId: 'test-access-key',
           secretAccessKey: 'test-secret-key',
@@ -52,14 +52,14 @@ describe('S3Service', () => {
 
     it('should create S3Service without credentials when not provided', () => {
       const configWithoutCreds = {
-        region: 'us-east-1',
+        region: 'eu-north-1',
         bucketName: 'test-bucket',
       };
 
       new S3Service(configWithoutCreds);
 
       expect(S3Client).toHaveBeenCalledWith({
-        region: 'us-east-1',
+        region: 'eu-north-1',
       });
     });
   });
@@ -132,7 +132,7 @@ describe('S3Service', () => {
       mockUpload.done.mockRejectedValue(error);
       
       // Mock the region call to avoid async issues in error handling
-      mockS3Client.config.region.mockResolvedValue('us-east-1');
+      mockS3Client.config.region.mockResolvedValue('eu-north-1');
 
       // Suppress console.error for this test
       const originalConsoleError = console.error;
@@ -170,12 +170,12 @@ describe('S3Service', () => {
   });
 
   describe('generatePublicUrl', () => {
-    it('should generate URL for us-east-1 region', () => {
+    it('should generate URL for eu-north-1 region', () => {
       const url = s3Service.generatePublicUrl('test/file.txt');
       expect(url).toBe('https://test-bucket.s3.amazonaws.com/test/file.txt');
     });
 
-    it('should generate URL for non-us-east-1 region', () => {
+    it('should generate URL for non-eu-north-1 region', () => {
       const configEuWest = { ...mockConfig, region: 'eu-west-1' };
       const serviceEuWest = new S3Service(configEuWest);
 

@@ -1,4 +1,5 @@
-import { userService } from '@asafe/services';
+import 'reflect-metadata';
+import { container, UserService } from '@asafe/services';
 import {
   createUserSchema,
   errorResponseSchema,
@@ -18,6 +19,8 @@ import { sendForbiddenError, sendNotFoundError } from '../utils/errorHandling';
 import { paginateResponse } from '../utils/pagination';
 
 const userRoutes: FastifyPluginAsyncZod = async fastify => {
+  // Get service from container using dependency injection
+  const userService = container.resolve(UserService);
   fastify.route({
     method: 'GET',
     url: '/',

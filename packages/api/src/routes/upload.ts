@@ -1,4 +1,4 @@
-import { userService } from '@asafe/services';
+import { container, UserService } from '@asafe/services';
 import {
   errorResponseSchema,
   fileUploadSchema,
@@ -13,7 +13,7 @@ const uploadRoutes: FastifyPluginAsync = async fastify => {
   fastify.setValidatorCompiler(() => () => ({}));
 
   const s3Config = {
-    region: process.env.AWS_REGION || 'us-east-1',
+    region: process.env.AWS_REGION || 'eu-north-1',
     bucketName: process.env.AWS_S3_BUCKET_NAME || 'asafe-uploads-dev',
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
@@ -58,6 +58,7 @@ const uploadRoutes: FastifyPluginAsync = async fastify => {
 
         const profilePictureUrl = uploadResult.s3Url || uploadResult.path;
 
+        const userService = container.resolve(UserService);
         const updatedUser = await userService.updateUser(user.id, {
           profilePicture: profilePictureUrl,
         });

@@ -1,4 +1,5 @@
-import { notificationService } from '@asafe/services';
+import 'reflect-metadata';
+import { container, NotificationService } from '@asafe/services';
 import {
   broadcastRequestSchema,
   broadcastResponseSchema,
@@ -15,9 +16,12 @@ import { FastifyPluginAsync } from 'fastify';
 import { AuthenticatedRequest, requireAdmin, requireAuth } from '../middleware/auth';
 
 const notificationRoutes: FastifyPluginAsync = async fastify => {
+  // Get service from container using dependency injection
+  const notificationService = container.resolve(NotificationService);
+
   const cleanupInterval = setInterval(
     () => {
-      notificationService.cleanupInactiveConnections(30);
+      notificationService.cleanupInactiveConnections();
     },
     10 * 60 * 1000
   );

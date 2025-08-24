@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import {
   CreateUserRequest,
   NotificationPayload,
@@ -7,24 +8,29 @@ import {
 import { FileUploadService } from '@asafe/utilities';
 import { PrismaClient, User, UserRole } from '@prisma/client';
 import bcrypt from 'bcryptjs';
-import { databaseService } from './databaseService';
-import { notificationService } from './notificationService';
+import { inject, injectable } from 'tsyringe';
+import { IDatabaseService, INotificationService } from './interfaces';
 
+export interface S3Config {
+  region: string;
+  bucketName: string;
+  accessKeyId?: string;
+  secretAccessKey?: string;
+}
+
+@injectable()
 export class UserService {
   private prisma: PrismaClient;
   private fileUploadService?: FileUploadService;
 
-  constructor() {
-    this.prisma = databaseService.getClient();
+  constructor(
+    private databaseService: IDatabaseService,
+    private notificationService: INotificationService,
+    s3Config?: S3Config
+  ) {
+    this.prisma = this.databaseService.getClient();
 
-    const s3Config = {
-      region: process.env.AWS_REGION || 'us-east-1',
-      bucketName: process.env.AWS_S3_BUCKET_NAME || 'asafe-uploads-dev',
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    };
-
-    if (s3Config.bucketName && s3Config.accessKeyId && s3Config.secretAccessKey) {
+    if (s3Config && s3Config.bucketName && s3Config.accessKeyId && s3Config.secretAccessKey) {
       this.fileUploadService = new FileUploadService({
         s3Config,
         allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
@@ -117,7 +123,7 @@ export class UserService {
           },
         };
 
-        notificationService.broadcast(notification, id);
+        this.notificationService.broadcast(notification, id);
       } catch (error) {
         console.error('Failed to send user update notification:', error);
       }
@@ -200,5 +206,3 @@ export class UserService {
     return this.excludePassword(user);
   }
 }
-
-export const userService = new UserService();

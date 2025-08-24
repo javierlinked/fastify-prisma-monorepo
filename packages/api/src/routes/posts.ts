@@ -1,4 +1,5 @@
-import { postService } from '@asafe/services';
+import 'reflect-metadata';
+import { container, PostService } from '@asafe/services';
 import {
   createPostSchema,
   errorResponseSchema,
@@ -17,6 +18,7 @@ import { sendForbiddenError, sendNotFoundError } from '../utils/errorHandling';
 import { paginateResponse } from '../utils/pagination';
 
 const postRoutes: FastifyPluginAsyncZod = async fastify => {
+  const postService = container.resolve(PostService);
   fastify.route({
     method: 'GET',
     url: '/',

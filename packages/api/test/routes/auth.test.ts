@@ -1,4 +1,5 @@
-import { userService } from '@asafe/services';
+import 'reflect-metadata';
+import { container, UserService } from '@asafe/services';
 import { UserRole } from '@asafe/types';
 import jwt from '@fastify/jwt';
 import Fastify, { FastifyInstance } from 'fastify';
@@ -7,7 +8,31 @@ import { serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod
 import { authMiddleware } from '../../src/middleware/auth';
 import authRoutes from '../../src/routes/auth';
 
-const mockUserService = userService as jest.Mocked<typeof userService>;
+// Mock the container to return a mocked UserService
+const mockUserService = {
+  createUser: jest.fn(),
+  getUserByEmail: jest.fn(),
+  getUserByUsername: jest.fn(),
+  verifyPassword: jest.fn(),
+  getUserById: jest.fn(),
+  updateUser: jest.fn(),
+  deleteUser: jest.fn(),
+  getAllUsers: jest.fn(),
+  updateUserRole: jest.fn(),
+} as any;
+
+// Mock the container.resolve method
+jest.mock('@asafe/services', () => ({
+  container: {
+    resolve: jest.fn((serviceClass) => {
+      if (serviceClass === UserService) {
+        return mockUserService;
+      }
+      return {};
+    }),
+  },
+  UserService: jest.fn(),
+}));
 
 describe('Auth Routes', () => {
   let app: FastifyInstance;

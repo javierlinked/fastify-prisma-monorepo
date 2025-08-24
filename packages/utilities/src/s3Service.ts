@@ -116,7 +116,7 @@ export class S3Service {
    * @param key - The S3 key (filename/path) of the object
    */
   generatePublicUrl(key: string): string {
-    if (this.region === 'us-east-1') {
+    if (this.region === 'eu-north-1') {
       return `https://${this.bucketName}.s3.amazonaws.com/${key}`;
     }
     return `https://${this.bucketName}.s3.${this.region}.amazonaws.com/${key}`;

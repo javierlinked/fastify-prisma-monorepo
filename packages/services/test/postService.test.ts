@@ -1,50 +1,30 @@
+import 'reflect-metadata';
 import { PostService } from '../src/postService';
-import { notificationService } from '../src/notificationService';
-import { databaseService } from '../src/databaseService';
 import { CreatePostRequest, UpdatePostRequest } from '@asafe/types';
-
-// Mock the notification service
-jest.mock('../src/notificationService', () => ({
-  notificationService: {
-    broadcast: jest.fn(),
-    sendToUser: jest.fn(),
-    addClient: jest.fn(),
-    removeClient: jest.fn(),
-    getConnectedUsers: jest.fn(),
-    getConnectionCount: jest.fn(),
-    isUserConnected: jest.fn(),
-    cleanupInactiveConnections: jest.fn(),
-  },
-}));
-
-// Mock the database service
-jest.mock('../src/databaseService', () => ({
-  databaseService: {
-    getClient: jest.fn(),
-  },
-}));
+import { IDatabaseService, INotificationService } from '../src/interfaces';
+import { setupTestContainer, cleanupTestContainer } from './testContainer';
 
 describe('PostService', () => {
   let postService: PostService;
   let mockPrisma: any;
-  const mockNotificationService = notificationService as jest.Mocked<typeof notificationService>;
+  let mockDatabaseService: jest.Mocked<IDatabaseService>;
+  let mockNotificationService: jest.Mocked<INotificationService>;
+  let testContainer: any;
 
   beforeEach(() => {
-    mockPrisma = {
-      post: {
-        create: jest.fn(),
-        findUnique: jest.fn(),
-        findFirst: jest.fn(),
-        update: jest.fn(),
-        delete: jest.fn(),
-        findMany: jest.fn(),
-        count: jest.fn(),
-      },
-    };
+    const testSetup = setupTestContainer();
+    testContainer = testSetup.testContainer;
+    mockDatabaseService = testSetup.mockDatabaseService;
+    mockNotificationService = testSetup.mockNotificationService;
+    mockPrisma = testSetup.mockPrisma;
 
-    (databaseService.getClient as jest.Mock).mockReturnValue(mockPrisma);
-    postService = new PostService();
+    // Resolve PostService from container
+    postService = testContainer.resolve(PostService);
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    cleanupTestContainer(testContainer);
   });
 
   describe('createPost', () => {

@@ -1,24 +1,30 @@
+import 'reflect-metadata';
 import { UserRole } from '@asafe/types';
 import { PrismaClient } from '@prisma/client';
 import { UserService } from '../src/userService';
-
-jest.mock('../src/databaseService', () => ({
-  databaseService: {
-    getClient: jest.fn(),
-  },
-}));
+import { IDatabaseService, INotificationService } from '../src/interfaces';
+import { setupTestContainer, cleanupTestContainer } from './testContainer';
 
 describe('UserService', () => {
   let userService: UserService;
   let mockPrisma: jest.Mocked<PrismaClient>;
+  let mockDatabaseService: jest.Mocked<IDatabaseService>;
+  let mockNotificationService: jest.Mocked<INotificationService>;
+  let testContainer: any;
 
   beforeEach(() => {
-    mockPrisma = new PrismaClient() as jest.Mocked<PrismaClient>;
+    const testSetup = setupTestContainer();
+    testContainer = testSetup.testContainer;
+    mockDatabaseService = testSetup.mockDatabaseService;
+    mockNotificationService = testSetup.mockNotificationService;
+    mockPrisma = testSetup.mockPrisma;
 
-    const { databaseService } = require('../src/databaseService');
-    databaseService.getClient.mockReturnValue(mockPrisma);
+    // Resolve UserService from container
+    userService = testContainer.resolve(UserService);
+  });
 
-    userService = new UserService();
+  afterEach(() => {
+    cleanupTestContainer(testContainer);
   });
 
   describe('createUser', () => {

@@ -1,21 +1,17 @@
+import 'reflect-metadata';
 import { PrismaClient } from '@prisma/client';
+import { singleton } from 'tsyringe';
+import { IDatabaseService } from './interfaces';
 
 /**
- * Singleton service
+ * Singleton database service using TSyringe
  */
-export class DatabaseService {
-  private static instance: DatabaseService;
+@singleton()
+export class DatabaseService implements IDatabaseService {
   private prisma: PrismaClient;
 
-  private constructor() {
+  constructor() {
     this.prisma = new PrismaClient();
-  }
-
-  public static getInstance(): DatabaseService {
-    if (!DatabaseService.instance) {
-      DatabaseService.instance = new DatabaseService();
-    }
-    return DatabaseService.instance;
   }
 
   public getClient(): PrismaClient {
@@ -39,5 +35,3 @@ export class DatabaseService {
     }
   }
 }
-
-export const databaseService = DatabaseService.getInstance();
