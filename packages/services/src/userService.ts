@@ -14,8 +14,8 @@ import { IDatabaseService, INotificationService } from './interfaces';
 export interface S3Config {
   region: string;
   bucketName: string;
-  accessKeyId?: string;
-  secretAccessKey?: string;
+  accessKeyId: string;
+  secretAccessKey: string;
 }
 
 @injectable()
@@ -30,7 +30,7 @@ export class UserService {
   ) {
     this.prisma = this.databaseService.getClient();
 
-    if (s3Config && s3Config.bucketName && s3Config.accessKeyId && s3Config.secretAccessKey) {
+    if (s3Config) {
       this.fileUploadService = new FileUploadService({
         s3Config,
         allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],

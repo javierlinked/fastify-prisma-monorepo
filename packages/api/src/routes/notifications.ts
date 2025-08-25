@@ -46,7 +46,7 @@ const notificationRoutes: FastifyPluginAsync = async fastify => {
       notificationService.addClient(userId, connection);
 
       fastify.log.info(`User ${userId} connected to WebSocket`);
-    } catch (error) {
+    } catch (error: any) {
       fastify.log.error('WebSocket authentication failed:', error);
       connection.close(1008, 'Invalid token');
     }

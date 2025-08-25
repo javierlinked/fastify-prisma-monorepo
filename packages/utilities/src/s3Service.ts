@@ -5,8 +5,8 @@ import { Readable } from 'stream';
 export interface S3Config {
   region: string;
   bucketName: string;
-  accessKeyId?: string;
-  secretAccessKey?: string;
+  accessKeyId: string;
+  secretAccessKey: string;
   enableEncryption?: boolean;
 }
 
@@ -28,16 +28,26 @@ export class S3Service {
     this.region = config.region;
     this.enableEncryption = config.enableEncryption ?? true;
 
-    const clientConfig: any = {
-      region: config.region,
-    };
+    // Validate required configuration
+    if (!config.region) {
+      throw new Error('AWS region is required for S3 client');
+    }
+    if (!config.bucketName) {
+      throw new Error('S3 bucket name is required');
+    }
+    if (!config.accessKeyId || !config.secretAccessKey) {
+      throw new Error(
+        'AWS credentials (accessKeyId and secretAccessKey) are required for S3 client'
+      );
+    }
 
-    if (config.accessKeyId && config.secretAccessKey) {
-      clientConfig.credentials = {
+    const clientConfig = {
+      region: config.region,
+      credentials: {
         accessKeyId: config.accessKeyId,
         secretAccessKey: config.secretAccessKey,
-      };
-    }
+      },
+    };
 
     this.s3Client = new S3Client(clientConfig);
   }
@@ -84,12 +94,6 @@ export class S3Service {
         location: result.Location || '',
       };
     } catch (error) {
-      const region = await this.s3Client.config.region();
-      console.error('S3 upload error details:', {
-        bucketName: this.bucketName,
-        region,
-        error,
-      });
       throw new Error(`Failed to upload file to S3: ${error}`);
     }
   }

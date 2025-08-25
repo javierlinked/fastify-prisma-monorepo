@@ -12,16 +12,26 @@ import { sendErrorResponse } from '../utils/errorHandling';
 const uploadRoutes: FastifyPluginAsync = async fastify => {
   fastify.setValidatorCompiler(() => () => ({}));
 
-  const s3Config = {
-    region: process.env.AWS_REGION || 'eu-north-1',
-    bucketName: process.env.AWS_S3_BUCKET_NAME || 'asafe-uploads-dev',
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  };
+  const awsRegion = process.env.AWS_REGION || 'eu-north-1';
+  const awsBucketName = process.env.AWS_S3_BUCKET_NAME || 'asafe-uploads-dev';
+  const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID;
+  const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
 
-  if (!s3Config.bucketName) {
+  if (!awsBucketName) {
     throw new Error('AWS_S3_BUCKET_NAME environment variable is required');
   }
+  if (!awsAccessKeyId || !awsSecretAccessKey) {
+    throw new Error(
+      'AWS credentials (AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY) environment variables are required'
+    );
+  }
+
+  const s3Config = {
+    region: awsRegion,
+    bucketName: awsBucketName,
+    accessKeyId: awsAccessKeyId,
+    secretAccessKey: awsSecretAccessKey,
+  };
 
   const uploadService = new FileUploadService({
     s3Config,

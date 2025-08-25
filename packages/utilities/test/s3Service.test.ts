@@ -50,17 +50,39 @@ describe('S3Service', () => {
       });
     });
 
-    it('should create S3Service without credentials when not provided', () => {
+    it('should throw error when credentials are not provided', () => {
       const configWithoutCreds = {
         region: 'eu-north-1',
         bucketName: 'test-bucket',
-      };
+      } as any;
 
-      new S3Service(configWithoutCreds);
+      expect(() => new S3Service(configWithoutCreds)).toThrow(
+        'AWS credentials (accessKeyId and secretAccessKey) are required for S3 client'
+      );
+    });
 
-      expect(S3Client).toHaveBeenCalledWith({
+    it('should throw error when region is not provided', () => {
+      const configWithoutRegion = {
+        bucketName: 'test-bucket',
+        accessKeyId: 'test-access-key',
+        secretAccessKey: 'test-secret-key',
+      } as any;
+
+      expect(() => new S3Service(configWithoutRegion)).toThrow(
+        'AWS region is required for S3 client'
+      );
+    });
+
+    it('should throw error when bucket name is not provided', () => {
+      const configWithoutBucket = {
         region: 'eu-north-1',
-      });
+        accessKeyId: 'test-access-key',
+        secretAccessKey: 'test-secret-key',
+      } as any;
+
+      expect(() => new S3Service(configWithoutBucket)).toThrow(
+        'S3 bucket name is required'
+      );
     });
   });
 

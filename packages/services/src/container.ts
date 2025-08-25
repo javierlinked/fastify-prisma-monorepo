@@ -17,11 +17,20 @@ container.register<INotificationService>('INotificationService', {
 });
 
 // Register S3 configuration
+const awsRegion = process.env.AWS_REGION || 'eu-north-1';
+const awsBucketName = process.env.AWS_S3_BUCKET_NAME || 'asafe-uploads-dev';
+const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID;
+const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
+
+if (!awsAccessKeyId || !awsSecretAccessKey) {
+  throw new Error('AWS credentials (AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY) are required');
+}
+
 const s3Config: S3Config = {
-  region: process.env.AWS_REGION || 'eu-north-1',
-  bucketName: process.env.AWS_S3_BUCKET_NAME || 'asafe-uploads-dev',
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: awsRegion,
+  bucketName: awsBucketName,
+  accessKeyId: awsAccessKeyId,
+  secretAccessKey: awsSecretAccessKey,
 };
 
 container.register<S3Config>('S3Config', {
