@@ -22,7 +22,7 @@ services:
     build: .
     container_name: fastify-prisma-monorepo
     env_file:
-      - ./packages/api/.env
+      - ./.env
     environment:
       # Override defaults if needed, .env file values are used otherwise
       JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}

@@ -7,9 +7,9 @@
   "scripts": {
     "build": "prisma generate && tsc",
     "test": "jest",
-    "db:migrate": "dotenv -e ../api/.env prisma migrate dev",
-    "db:generate": "dotenv -e ../api/.env prisma generate",
-    "db:studio": "dotenv -e ../api/.env prisma studio"
+    "db:migrate": "dotenv -e ../../.env prisma migrate dev",
+    "db:generate": "dotenv -e ../../.env prisma generate",
+    "db:studio": "dotenv -e ../../.env prisma studio"
   },
   "dependencies": {
     "@asafe/types": "^1.0.0",
