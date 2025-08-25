@@ -283,7 +283,7 @@ docker run -p 3000:3000 fastify-prisma-monorepo
 
 ### TODO
 
-- [ ] Dependecy injection
+- [x] Dependecy injection
 - [ ] Mejorar manejo de archivos en users PUT
 - [ ] Mucho más
 

@@ -28,6 +28,7 @@ const postRoutes: FastifyPluginAsyncZod = async fastify => {
       response: {
         200: paginatedPostsResponseSchema,
         400: errorResponseSchema,
+        500: errorResponseSchema,
       },
     },
     handler: async (request, reply) => {
@@ -50,6 +51,7 @@ const postRoutes: FastifyPluginAsyncZod = async fastify => {
         201: postSchema,
         400: errorResponseSchema,
         401: errorResponseSchema,
+        500: errorResponseSchema,
       },
     },
     handler: async (request, reply) => {
@@ -67,8 +69,9 @@ const postRoutes: FastifyPluginAsyncZod = async fastify => {
       params: idParamSchema,
       response: {
         200: postSchema,
-        404: errorResponseSchema,
         400: errorResponseSchema,
+        404: errorResponseSchema,
+        500: errorResponseSchema,
       },
     },
     handler: async (request, reply) => {
@@ -95,9 +98,11 @@ const postRoutes: FastifyPluginAsyncZod = async fastify => {
       body: updatePostSchema,
       response: {
         200: postSchema,
-        404: errorResponseSchema,
-        403: errorResponseSchema,
         400: errorResponseSchema,
+        401: errorResponseSchema,
+        403: errorResponseSchema,
+        404: errorResponseSchema,
+        500: errorResponseSchema,
       },
     },
     handler: async (request, reply) => {
@@ -118,9 +123,11 @@ const postRoutes: FastifyPluginAsyncZod = async fastify => {
       params: idParamSchema,
       response: {
         204: z.null(),
-        404: errorResponseSchema,
-        403: errorResponseSchema,
         400: errorResponseSchema,
+        401: errorResponseSchema,
+        403: errorResponseSchema,
+        404: errorResponseSchema,
+        500: errorResponseSchema,
       },
     },
     handler: async (request, reply) => {
@@ -141,6 +148,7 @@ const postRoutes: FastifyPluginAsyncZod = async fastify => {
       response: {
         200: paginatedPostsResponseSchema,
         400: errorResponseSchema,
+        500: errorResponseSchema,
       },
     },
     handler: async (request, reply) => {
@@ -165,6 +173,7 @@ const postRoutes: FastifyPluginAsyncZod = async fastify => {
         200: paginatedPostsResponseSchema,
         400: errorResponseSchema,
         401: errorResponseSchema,
+        500: errorResponseSchema,
       },
     },
     handler: async (request, reply) => {

@@ -40,6 +40,7 @@ const uploadRoutes: FastifyPluginAsync = async fastify => {
         response: {
           200: profilePictureUploadResponseSchema,
           400: errorResponseSchema,
+          401: errorResponseSchema,
           500: errorResponseSchema,
         },
       },

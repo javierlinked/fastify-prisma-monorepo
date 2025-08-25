@@ -22,8 +22,9 @@ const authRoutes: FastifyPluginAsyncZod = async fastify => {
       body: registerSchema,
       response: {
         201: authResponseSchema,
-        409: errorResponseSchema,
         400: errorResponseSchema,
+        409: errorResponseSchema,
+        500: errorResponseSchema,
       },
     },
     handler: async (request, reply) => {
@@ -50,8 +51,9 @@ const authRoutes: FastifyPluginAsyncZod = async fastify => {
       body: loginSchema,
       response: {
         200: authResponseSchema,
-        401: errorResponseSchema,
         400: errorResponseSchema,
+        401: errorResponseSchema,
+        500: errorResponseSchema,
       },
     },
     handler: async (request, reply) => {
@@ -88,6 +90,7 @@ const authRoutes: FastifyPluginAsyncZod = async fastify => {
       response: {
         200: tokenResponseSchema,
         401: errorResponseSchema,
+        500: errorResponseSchema,
       },
     },
     handler: async (request, reply) => {
@@ -113,6 +116,8 @@ const authRoutes: FastifyPluginAsyncZod = async fastify => {
       security: [{ Bearer: [] }],
       response: {
         200: messageResponseSchema,
+        401: errorResponseSchema,
+        500: errorResponseSchema,
       },
     },
     handler: async (request, reply) => {
@@ -129,7 +134,9 @@ const authRoutes: FastifyPluginAsyncZod = async fastify => {
       security: [{ Bearer: [] }],
       response: {
         200: userSchema,
+        401: errorResponseSchema,
         404: errorResponseSchema,
+        500: errorResponseSchema,
       },
     },
     handler: async (request, reply) => {

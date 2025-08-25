@@ -16,7 +16,6 @@ import { FastifyPluginAsync } from 'fastify';
 import { AuthenticatedRequest, requireAdmin, requireAuth } from '../middleware/auth';
 
 const notificationRoutes: FastifyPluginAsync = async fastify => {
-  // Get service from container using dependency injection
   const notificationService = container.resolve(NotificationService);
 
   const cleanupInterval = setInterval(
@@ -68,8 +67,10 @@ const notificationRoutes: FastifyPluginAsync = async fastify => {
         body: sendNotificationRequestSchema,
         response: {
           200: sendNotificationResponseSchema,
-          403: errorResponseSchema,
           400: errorResponseSchema,
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+          500: errorResponseSchema,
         },
       },
     },
@@ -101,8 +102,10 @@ const notificationRoutes: FastifyPluginAsync = async fastify => {
         body: broadcastRequestSchema,
         response: {
           200: broadcastResponseSchema,
-          403: errorResponseSchema,
           400: errorResponseSchema,
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+          500: errorResponseSchema,
         },
       },
     },
@@ -133,7 +136,9 @@ const notificationRoutes: FastifyPluginAsync = async fastify => {
         security: [{ Bearer: [] }],
         response: {
           200: connectedUsersResponseSchema,
+          401: errorResponseSchema,
           403: errorResponseSchema,
+          500: errorResponseSchema,
         },
       },
     },
@@ -163,7 +168,9 @@ const notificationRoutes: FastifyPluginAsync = async fastify => {
         params: userIdParamSchema,
         response: {
           200: userStatusResponseSchema,
+          401: errorResponseSchema,
           403: errorResponseSchema,
+          500: errorResponseSchema,
         },
       },
     },

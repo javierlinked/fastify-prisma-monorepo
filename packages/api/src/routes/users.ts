@@ -19,7 +19,6 @@ import { sendForbiddenError, sendNotFoundError } from '../utils/errorHandling';
 import { paginateResponse } from '../utils/pagination';
 
 const userRoutes: FastifyPluginAsyncZod = async fastify => {
-  // Get service from container using dependency injection
   const userService = container.resolve(UserService);
   fastify.route({
     method: 'GET',
@@ -31,8 +30,10 @@ const userRoutes: FastifyPluginAsyncZod = async fastify => {
       querystring: paginationSchema,
       response: {
         200: paginatedUsersResponseSchema,
-        403: errorResponseSchema,
         400: errorResponseSchema,
+        401: errorResponseSchema,
+        403: errorResponseSchema,
+        500: errorResponseSchema,
       },
     },
     handler: async (request, reply) => {
@@ -53,8 +54,11 @@ const userRoutes: FastifyPluginAsyncZod = async fastify => {
       body: createUserSchema,
       response: {
         201: userSchema,
-        409: errorResponseSchema,
         400: errorResponseSchema,
+        401: errorResponseSchema,
+        403: errorResponseSchema,
+        409: errorResponseSchema,
+        500: errorResponseSchema,
       },
     },
     handler: async (request, reply) => {
@@ -71,8 +75,9 @@ const userRoutes: FastifyPluginAsyncZod = async fastify => {
       params: idParamSchema,
       response: {
         200: userSchema,
-        404: errorResponseSchema,
         400: errorResponseSchema,
+        404: errorResponseSchema,
+        500: errorResponseSchema,
       },
     },
     handler: async (request, reply) => {
@@ -97,7 +102,9 @@ const userRoutes: FastifyPluginAsyncZod = async fastify => {
       security: [{ Bearer: [] }],
       response: {
         200: userSchema,
+        401: errorResponseSchema,
         404: errorResponseSchema,
+        500: errorResponseSchema,
       },
     },
     handler: async (request, reply) => {
@@ -124,10 +131,12 @@ const userRoutes: FastifyPluginAsyncZod = async fastify => {
       body: updateUserSchema,
       response: {
         200: userSchema,
+        400: errorResponseSchema,
+        401: errorResponseSchema,
         403: errorResponseSchema,
         404: errorResponseSchema,
         409: errorResponseSchema,
-        400: errorResponseSchema,
+        500: errorResponseSchema,
       },
     },
     handler: async (request, reply) => {
@@ -153,9 +162,11 @@ const userRoutes: FastifyPluginAsyncZod = async fastify => {
       params: idParamSchema,
       response: {
         204: z.null(),
+        400: errorResponseSchema,
+        401: errorResponseSchema,
         403: errorResponseSchema,
         404: errorResponseSchema,
-        400: errorResponseSchema,
+        500: errorResponseSchema,
       },
     },
     handler: async (request, reply) => {

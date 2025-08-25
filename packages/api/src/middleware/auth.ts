@@ -26,7 +26,7 @@ export function authenticate(allowedRoles?: UserRole[]) {
           return reply.status(403).send({
             error: 'Forbidden',
             message: 'Insufficient permissions',
-            statusCode: 403
+            statusCode: 403,
           });
         }
       }
@@ -34,7 +34,7 @@ export function authenticate(allowedRoles?: UserRole[]) {
       return reply.status(401).send({
         error: 'Unauthorized',
         message: 'Invalid or missing token',
-        statusCode: 401
+        statusCode: 401,
       });
     }
   };
