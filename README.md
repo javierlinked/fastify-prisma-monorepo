@@ -1,480 +1,181 @@
-# ASafe Monorepo
+# Fastify-Prisma-Monorepo
 
-Prueba Técnica: Desarrollador Node.js con TypeScript, Fastify, Prisma y Monorepo
+Technical Test: Node.js Developer with TypeScript, Fastify, Prisma, and Yarn Monorepo
 
-## Deployment en Vivo
+<!-- ## Live Deployment
 
-La aplicación está desplegada y disponible en:
+The application is deployed and available at:
 
 - **API**: http://fastify-api-alb-2001389992.eu-north-1.elb.amazonaws.com/
-- **Documentación Swagger**: http://fastify-api-alb-2001389992.eu-north-1.elb.amazonaws.com/docs
+- **Swagger Documentation**: http://fastify-api-alb-2001389992.eu-north-1.elb.amazonaws.com/docs
 
-### Credenciales de Prueba
+### Test Credentials
 
-Para probar la API puedes usar las siguientes credenciales:
+To test the API, you can use these credentials:
 
 - **Email**: usuario@prueba.com
-- **Contraseña**: unodostres
+- **Password**: unodostres -->
 
-## Arquitectura
+## Architecture
 
-Este es un monorepo que contiene múltiples paquetes que trabajan juntos para crear una solución API completa:
+This monorepo contains multiple packages working together to create a complete API solution:
 
 ```
 packages/
-├── types/          # Tipos e interfaces TypeScript compartidos
-├── utilities/      # Funciones de utilidad compartidas
-├── services/       # Servicios de lógica de negocio
-└── api/           # Servidor principal de la API Fastify
+├── types/          # Shared TypeScript types and interfaces
+├── utilities/      # Shared utility functions
+├── services/       # Business logic services
+└── api/           # Main Fastify API server
 ```
 
-## Diagrama de Arquitectura
-
-```mermaid
-graph TB
-    %% Client Layer
-    Client[👤 Cliente/Frontend]
-    WSClient[🔌 WebSocket Client]
-    
-    %% API Layer
-    subgraph "📦 API Package"
-        FastifyApp[🚀 Fastify App]
-        AuthMiddleware[🔐 Auth Middleware]
-        
-        subgraph "🛣️ Routes"
-            AuthRoutes[👤 Auth Routes]
-            UserRoutes[👥 User Routes] 
-            PostRoutes[📝 Post Routes]
-            UploadRoutes[📤 Upload Routes]
-            NotificationRoutes[🔔 Notification Routes]
-        end
-        
-        ErrorHandler[❌ Error Handler]
-        Swagger[📚 Swagger Docs]
-    end
-    
-    %% Services Layer
-    subgraph "🔧 Services Package"
-        Container[📦 TSyringe Container]
-        
-        subgraph "Services"
-            UserService[👤 User Service]
-            PostService[📝 Post Service] 
-            NotificationService[🔔 Notification Service]
-            DatabaseService[🗄️ Database Service]
-        end
-        
-        subgraph "Interfaces"
-            IDatabaseService[🔌 IDatabaseService]
-            INotificationService[🔌 INotificationService]
-        end
-    end
-    
-    %% Utilities Layer
-    subgraph "🛠️ Utilities Package"
-        FileUploadService[📤 File Upload Service]
-        S3Service[☁️ S3 Service]
-    end
-    
-    %% Types Layer
-    subgraph "📝 Types Package"
-        ZodSchemas[✅ Zod Schemas]
-        TypeInterfaces[📋 TypeScript Interfaces]
-        UserRole[👑 User Roles]
-    end
-    
-    %% External Services
-    subgraph "🌐 External Services"
-        PostgresDB[(🐘 PostgreSQL)]
-        AWSS3[☁️ AWS S3]
-        JWT[🎫 JWT Tokens]
-    end
-    
-    %% Client connections
-    Client -->|HTTP REST API| FastifyApp
-    WSClient -->|WebSocket| NotificationRoutes
-    
-    %% API internal flow
-    FastifyApp --> AuthMiddleware
-    FastifyApp --> ErrorHandler
-    FastifyApp --> Swagger
-    
-    AuthMiddleware --> AuthRoutes
-    AuthMiddleware --> UserRoutes
-    AuthMiddleware --> PostRoutes
-    AuthMiddleware --> UploadRoutes
-    AuthMiddleware --> NotificationRoutes
-    
-    %% Routes to Services via Container
-    AuthRoutes -.->|resolve| Container
-    UserRoutes -.->|resolve| Container
-    PostRoutes -.->|resolve| Container
-    UploadRoutes -.->|resolve| Container
-    NotificationRoutes -.->|resolve| Container
-    
-    Container --> UserService
-    Container --> PostService
-    Container --> NotificationService
-    Container --> DatabaseService
-    
-    %% Service dependencies
-    UserService --> IDatabaseService
-    UserService --> INotificationService
-    UserService --> FileUploadService
-    
-    PostService --> IDatabaseService
-    PostService --> INotificationService
-    
-    NotificationService -.->|WebSocket connections| WSClient
-    
-    DatabaseService -.->|implements| IDatabaseService
-    NotificationService -.->|implements| INotificationService
-    
-    %% Utilities usage
-    FileUploadService --> S3Service
-    UploadRoutes --> FileUploadService
-    
-    %% Types usage (dotted lines for type dependencies)
-    FastifyApp -.->|uses types| ZodSchemas
-    AuthMiddleware -.->|uses types| UserRole
-    UserService -.->|uses types| TypeInterfaces
-    PostService -.->|uses types| TypeInterfaces
-    NotificationService -.->|uses types| TypeInterfaces
-    
-    %% External service connections
-    DatabaseService --> PostgresDB
-    S3Service --> AWSS3
-    AuthMiddleware --> JWT
-    
-    %% Styling
-    classDef clientStyle fill:#e1f5fe
-    classDef apiStyle fill:#f3e5f5  
-    classDef serviceStyle fill:#e8f5e8
-    classDef utilityStyle fill:#fff3e0
-    classDef typeStyle fill:#fce4ec
-    classDef externalStyle fill:#f1f8e9
-    
-    class Client,WSClient clientStyle
-    class FastifyApp,AuthMiddleware,AuthRoutes,UserRoutes,PostRoutes,UploadRoutes,NotificationRoutes,ErrorHandler,Swagger apiStyle
-    class Container,UserService,PostService,NotificationService,DatabaseService,IDatabaseService,INotificationService serviceStyle
-    class FileUploadService,S3Service utilityStyle
-    class ZodSchemas,TypeInterfaces,UserRole typeStyle
-    class PostgresDB,AWSS3,JWT externalStyle
-```
-
-## Tecnologías Principales
+## Tech Stack
 
 ### Backend Framework
-- **Fastify** - Framework web rápido y eficiente para Node.js
-- **TypeScript** - Tipado estático para mayor seguridad y productividad
-- **Zod** - Validación de esquemas y serialización type-safe
+- **Fastify** - Fast and efficient web framework for Node.js
+- **TypeScript** - Static typing for better safety and productivity
+- **Zod** - Schema validation and type-safe serialization
 
-### Base de Datos
-- **PostgreSQL** - Base de datos relacional robusta
-- **Prisma** - ORM moderno con type-safety y migraciones
+### Database
+- **PostgreSQL** - Robust relational database
+- **Prisma** - Modern ORM with type-safety and migrations
 
-### Arquitectura y Patrones
-- **TSyringe** - Inyección de dependencias con decoradores
-- **Monorepo** - Gestión de múltiples paquetes con Yarn Workspaces
-- **Dependency Inversion** - Interfaces para desacoplamiento
+### Architecture & Patterns
+- **TSyringe** - Dependency injection with decorators
+- **Monorepo** - Multi-package management with Yarn Workspaces
+- **Dependency Inversion** - Interfaces for decoupling
 
-### Almacenamiento y Archivos
-- **AWS S3** - Almacenamiento de archivos en la nube
-- **Multipart Upload** - Manejo de archivos con validación
+### Storage & Files
+- **AWS S3** - Cloud file storage
+- **Multipart Upload** - File handling with validation
 
-### Tiempo Real y Comunicación
-- **WebSockets** - Notificaciones en tiempo real
-- **JWT** - Autenticación stateless segura
+### Real-time & Communication
+- **WebSockets** - Real-time notifications
+- **JWT** - Secure stateless authentication
 
-### Testing y Calidad
-- **Jest** - Framework de testing con mocks
-- **Biome** - Linting y formateo rápido
-- **Docker** - Containerización para desarrollo y producción
+### Testing & Quality
+- **Jest** - Testing framework with mocks
+- **Biome** - Fast linting and formatting
+- **Docker** - Containerization for development and production
 
-## Dependencias de Paquetes
+## Getting Started
 
-Los paquetes tienen la siguiente jerarquía de dependencias:
-
-```
-api
-├── services
-│   ├── utilities
-│   └── types
-├── utilities
-│   └── types
-└── types
-
-services
-├── utilities
-└── types
-
-utilities
-└── types
-
-types
-(sin dependencias internas)
-```
-
-## Primeros Pasos
-
-### Requisitos Previos
+### Prerequisites
 
 - Node.js >= 20.0.0
-- Yarn (para gestión de workspaces)
-- Base de datos PostgreSQL
+- Yarn (for workspace management)
+- PostgreSQL database
 
-### Instalación
+### Installation
 
-1. Clonar el repositorio:
+1. Clone the repository:
 ```bash
 git clone https://github.com/javierlinked/fastify-prisma-monorepo
 cd fastify-prisma-monorepo
 ```
 
-2. Instalar dependencias:
+2. Install dependencies:
 ```bash
 yarn install
 ```
 
-3. Configurar variables de entorno:
+3. Set up environment variables:
 ```bash
 cp .env.example .env
-# Editar el archivo .env con las credenciales de tu base de datos y AWS
+# Edit .env file with your database and AWS credentials
 ```
 
-4. Generar cliente de Prisma:
+4. Generate Prisma client:
 ```bash
 yarn db:generate
 ```
 
-5. Ejecutar migraciones de base de datos:
+5. Run database migrations:
 ```bash
 yarn db:migrate
 ```
 
-## Build
+## Development
 
-### Build Todos los Paquetes
-
-El proceso de construcción sigue el orden correcto de dependencias:
-
-```bash
-yarn build
-```
-
-Esto ejecuta:
-1. `yarn build:types` - Construye tipos compartidos
-2. `yarn build:utilities` - Construye funciones de utilidad  
-3. `yarn build:services` - Construye servicios de lógica de negocio
-4. `yarn build:api` - Construye el servidor principal de la API
-
-
-## Pruebas
-
-### Ejecutar Todas las Pruebas
-
-```bash
-yarn test
-```
-
-### Ejecutar Pruebas para Paquete Específico
-
-```bash
-yarn workspace @asafe/api test
-yarn workspace @asafe/services test
-yarn workspace @asafe/utilities test
-```
-
-## Desarrollo
-
-### Iniciar Servidor de Desarrollo
+### Start Development Server
 
 ```bash
 yarn dev
 ```
 
-Esto inicia el servidor API con recarga en caliente usando `tsx watch`.
+This starts the API server with hot reload using `tsx watch`.
 
-### Calidad de Código
+### Build All Packages
 
-```bash
-# Verificar problemas de linting y formato
-yarn check
-
-# Corregir todos los problemas
-yarn fix
-```
-
-### Iniciar Servidor de Producción
+The build process follows the correct dependency order:
 
 ```bash
-yarn start
-```
-
-## Gestión de Base de Datos
-
-### Generar Cliente de Prisma
-
-```bash
-yarn db:generate
-```
-
-### Ejecutar Migraciones
-
-```bash
-yarn db:migrate
-```
-
-### Abrir Prisma Studio
-
-```bash
-yarn db:studio
-```
-
-## Documentación de la API
-
-Una vez que el servidor esté ejecutándose, puedes acceder a:
-
-- **Documentación de la API**: http://localhost:3000/docs
-- **Healthcheck**: http://localhost:3000/health
-
-## Detalles de Paquetes
-
-### @asafe/types
-Contiene interfaces y tipos TypeScript compartidos:
-- Modelos de Usuario y Post
-- Tipos de request/response de API
-- Re-exportaciones de tipos generados por Prisma
-
-### @asafe/utilities
-Funciones de utilidad compartidas:
-- Utilidades de carga de archivos con FileUploadService
-- Integración con S3 mediante S3Service
-- Validación y seguridad de archivos
-- Manejo de uploads con configuración flexible
-
-### @asafe/services
-Servicios de lógica de negocio con inyección de dependencias:
-- UserService: Operaciones de gestión de usuarios y autenticación
-- PostService: Operaciones CRUD de posts con notificaciones
-- NotificationService: Sistema de notificaciones en tiempo real WebSocket
-- DatabaseService: Servicio singleton para acceso a Prisma
-- Container: Configuración de TSyringe para DI
-
-### @asafe/api
-Servidor principal de la API Fastify con arquitectura moderna:
-- Endpoints de API REST con validación Zod
-- Soporte WebSocket para notificaciones en tiempo real
-- Middleware de autenticación JWT con roles
-- Documentación Swagger automática
-- Manejo de carga de archivos con AWS S3
-- Inyección de dependencias con TSyringe
-- Manejo centralizado de errores
-
-## Características de Seguridad
-
-- Autenticación JWT con roles de usuario (USER/ADMIN)
-- Hash de contraseñas con bcrypt y salt rounds configurables
-- Validación de entrada estricta con esquemas Zod
-- Configuración CORS habilitada para desarrollo
-- Middleware de autorización basado en roles
-- Validación de archivos con tipos MIME y extensiones permitidas
-- Sanitización de nombres de archivos subidos
-- Variables de entorno centralizadas y seguras
-
-## Endpoints de la API
-
-### Autenticación
-- `POST /auth/register` - Registro de usuario
-- `POST /auth/login` - Inicio de sesión de usuario
-- `GET /auth/me` - Obtener usuario actual
-- `POST /auth/refresh` - Actualizar token
-
-### Usuarios
-- `GET /users` - Listar usuarios
-- `GET /users/:id` - Obtener usuario por ID
-- `PUT /users/:id` - Actualizar usuario
-- `DELETE /users/:id` - Eliminar usuario
-
-### Posts
-- `GET /posts` - Listar posts
-- `POST /posts` - Crear post
-- `GET /posts/:id` - Obtener post por ID
-- `PUT /posts/:id` - Actualizar post
-- `DELETE /posts/:id` - Eliminar post
-
-### Carga de Archivos
-- `POST /api/upload` - Subir archivo (requiere autenticación)
-  - Soporta imágenes: JPEG, PNG, GIF, WebP
-  - Validación de tipo MIME y extensión
-  - Upload directo a AWS S3
-  - Actualización automática de perfil de usuario
-
-### Notificaciones (WebSocket)
-- `GET /notifications/ws` - Conexión WebSocket
-- `POST /notifications/send/:userId` - Enviar notificación
-- `POST /notifications/broadcast` - Difundir notificación
-
-
-## Notificaciones en Tiempo Real
-
-El proyecto incluye un sistema completo de notificaciones en tiempo real utilizando WebSockets:
-
-### Características Principales
-
-- Conexiones WebSocket autenticadas con JWT
-- Gestión automática de conexiones con limpieza periódica
-- Eventos automáticos integrados en la lógica de negocio
-- Cliente de prueba incluido (`test-ws.html`). De uso local, se conecta a la instancia en AWS (o local).
-
-### Eventos Soportados
-
-- NEW_POST: Se envía cuando un usuario crea un nuevo post (a todos excepto al autor)
-- USER_UPDATE: Se envía cuando un usuario actualiza su perfil o foto
-- SYSTEM: Mensajes del sistema y confirmaciones de conexión
-
-### Endpoints Administrativos
-
-- `GET /api/notifications/connected` - Lista usuarios conectados
-- `GET /api/notifications/status/:userId` - Estado de conexión de usuario
-- `POST /api/notifications/send/:userId` - Enviar notificación específica
-- `POST /api/notifications/broadcast` - Difundir a todos los usuarios
-
-## Despliegue
-
-### Construcción de Producción
-
-```bash
-yarn clean
 yarn build
 ```
 
-### Soporte Docker
+This executes:
+1. `yarn build:types` - Build shared types
+2. `yarn build:utilities` - Build utility functions  
+3. `yarn build:services` - Build business logic services
+4. `yarn build:api` - Build main API server
 
-Se incluye un Dockerfile para despliegue en contenedores:
+### Testing
 
 ```bash
-docker build -t fastify-prisma-monorepo .
-docker run -p 3000:3000 fastify-prisma-monorepo
+# Run all tests
+yarn test
+
+# Run tests for specific package
+yarn workspace @asafe/api test
+yarn workspace @asafe/services test
+yarn workspace @asafe/utilities test
 ```
 
-### TODO
+### Code Quality
 
-- [x] Inyección de dependencias con TSyringe
-- [x] Variables de entorno centralizadas
-- [x] Servicios singleton con decoradores
-- [x] Interfaces para abstracciones
-- [x] Upload de archivos a S3
-- [x] WebSocket con autenticación JWT
-- [ ] Rate limiting para APIs
-- [ ] Mejorar manejo de archivos en users PUT
-- [ ] Implementar caché con Redis
-- [ ] Logging estructurado con contexto
-- [ ] Métricas y monitoreo
-- [ ] Tests de integración completos
-- [ ] CI/CD pipeline automatizado
+```bash
+# Check linting and format issues
+yarn check
 
+# Fix all issues
+yarn fix
+```
 
-## Licencia
+## Database Management
 
-Licencia MIT - ver archivo LICENSE
+```bash
+# Generate Prisma client
+yarn db:generate
+
+# Run migrations
+yarn db:migrate
+
+# Open Prisma Studio
+yarn db:studio
+```
+
+## Documentation
+
+📖 **Detailed Documentation:**
+- [Architecture](docs/ARCHITECTURE.md) - System architecture and package details
+- [API Documentation](docs/API.md) - Endpoints and WebSocket features
+- [Deployment Guide](docs/DEPLOYMENT.md) - Production deployment instructions
+
+## TODO
+
+- [x] Dependency injection with TSyringe
+- [x] Centralized environment variables
+- [x] Singleton services with decorators
+- [x] Interfaces for abstractions
+- [x] File uploads to S3
+- [x] WebSocket with JWT authentication
+- [ ] Rate limiting for APIs
+- [ ] Improve file handling in users PUT
+- [ ] Implement caching with Redis
+- [ ] Structured logging with context
+- [ ] Metrics and monitoring
+- [ ] Complete integration tests
+- [ ] Automated CI/CD pipeline
+
+## License
+
+[MIT License](LICENSE)
