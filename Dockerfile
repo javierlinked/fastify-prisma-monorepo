@@ -1,9 +1,7 @@
 # ========================================
 # BUILD STAGE
 # ========================================
-# Use ARG for flexibility, defaulting to linux/amd64
-ARG TARGETPLATFORM=linux/amd64
-FROM --platform=$TARGETPLATFORM node:20-alpine AS builder
+FROM node:20-alpine AS builder
 
 # Install build dependencies
 RUN apk add --no-cache python3 make g++
@@ -34,8 +32,7 @@ RUN yarn build
 # ========================================
 # PRODUCTION STAGE
 # ========================================
-ARG TARGETPLATFORM=linux/amd64
-FROM --platform=$TARGETPLATFORM node:20-alpine AS production
+FROM node:20-alpine AS production
 
 # Install runtime dependencies only
 RUN apk add --no-cache curl dumb-init
